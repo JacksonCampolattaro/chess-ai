@@ -1,6 +1,7 @@
 import numpy as np
 import chess.pgn
 
+import player
 
 def main():
 
