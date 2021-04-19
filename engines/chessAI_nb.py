@@ -1,7 +1,7 @@
 import numpy as np
 import chess
 
-class ChessAI_Naive_Bayes:
+class ChessAI_Naive_Bayes_Engine:
     def __init__(self):
         self.model = np.array([])
         self.num_trained_moves = 0
@@ -32,7 +32,7 @@ class ChessAI_Naive_Bayes:
         self.model[2:, [2, 3]] = PXY
         self.model[2:, 1] = PX
 
-    def predict(self, board):
+    def choose_move(self, board):
         #  Given a board state, generate all legal moves using python-chess, then calculate the move that gives
         #  the highest win probability
         legal_moves = board.legal_moves
