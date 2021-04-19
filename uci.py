@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import logging
 
 # Based on:
@@ -6,9 +8,14 @@ import logging
 import chess
 import re
 
+import engines.dumb
+
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.CRITICAL)
+
+    board = chess.Board()
+    engine = engines.dumb.RandomEngine()
 
     stack = []
     while True:
@@ -32,7 +39,8 @@ def main():
 
         # Send a fresh board, when asked
         elif command == "ucinewgame":
-            print("position fen " + chess.Board().fen())
+            pass
+            #print("position fen " + chess.Board().fen())
 
         # This is how we get told the current board state
         elif command.startswith("position"):
@@ -42,21 +50,20 @@ def main():
             starting_position_argument = arguments[0]
 
             # Parse the starting position
-            fen_string = starting_position = starting_position_argument[4:] \
-                if starting_position_argument.startswith("fen") else chess.Board().fen()
-            logging.debug(starting_position)
+            board = chess.Board(starting_position_argument[4:]) \
+                if starting_position_argument.startswith("fen") else chess.Board()
 
             # Parse the moves
-            moves_string = "" if len(arguments) == 1 else arguments[1]
+            moves = [] if len(arguments) == 1 else arguments[1].split(' ')
 
-            # Parse the moves list
-            # TODO
-            pass
+            # Apply each move to the board
+            for move_string in moves:
+                board.push(chess.Move.from_uci(move_string))
 
         # This is how we choose the next move
         elif command.startswith("go"):
-            # TODO
-            pass
+
+            print("bestmove " + engine.choose_move(board).uci())
 
         # Don't do anything for unrecognized commands
         else:
