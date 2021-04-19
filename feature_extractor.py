@@ -18,11 +18,11 @@ for board in boards
 """
 import chess.pgn
 import chess
-import chessAI_nb
+from engines import chessAI_nb
 
 prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
-end_amount = 1000
+end_amount = 5000
 
 
 def nb_extract_moves(pgn_file):
@@ -86,5 +86,11 @@ if __name__ == '__main__':
     nb = chessAI_nb.ChessAI_Naive_Bayes()
     nb.train(move_dictionary)
     b = chess.Board()
-    move = nb.predict(b)
-    print(move.uci())
+    while not b.is_game_over():
+        print(b)
+        uci_in = input("UCI> ")
+        player_move = chess.Move.from_uci(uci_in)
+        b.push(player_move)
+        nb_move = nb.predict(b)
+        print("NB>", nb_move.uci())
+        b.push(nb_move)
