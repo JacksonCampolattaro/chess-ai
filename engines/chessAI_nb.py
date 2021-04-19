@@ -27,7 +27,8 @@ class ChessAI_Naive_Bayes_Engine:
         # Format model's np matrix
         self.model = np.zeros([2+data.shape[0], 4], dtype=object)
         self.model[0, [2, 3]] = ["Loss", "Win"]
-        self.model[2:, 0] = data[:, 0]        self.model[1, [2, 3]] = PY
+        self.model[2:, 0] = data[:, 0]
+        self.model[1, [2, 3]] = PY
         self.model[2:, [2, 3]] = PXY
         self.model[2:, 1] = PX
 
