@@ -50,7 +50,7 @@ class ChessAI_Naive_Bayes_Engine:
                 PX = 1/self.num_total_moves
                 PXY = [1/self.num_trained_moves, 1/self.num_trained_moves]
                 np.append(self.model, [key, PX, PXY])
-                print(self.model)
+                # print(self.model)
             index = np.argwhere(self.model[:, 0] == key)
             PYX = (self.model[1, 3]*self.model[index, 3])/(self.model[index, 1])
             scores.append(PYX)

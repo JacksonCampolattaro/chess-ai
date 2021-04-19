@@ -28,7 +28,7 @@ def play():
         if board.turn:
 
             print("Our engine's move:")
-            result = our_engine.play(board, chess.engine.Limit(time=0.1))
+            result = our_engine.play(board, chess.engine.Limit(time=1000))
             board.push(result.move)
 
         else:

@@ -21,7 +21,7 @@ import chess
 
 prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
-end_amount = 5000
+end_amount = 3000
 
 
 def nb_extract_moves(pgn_file):
@@ -57,7 +57,7 @@ def extract_boards_and_moves(pgn_file):
     game = chess.pgn.read_game(pgn)
     game_num = 1
     while game is not None and (game_num <= end_amount or not end_early):
-        print("Game #{}".format(game_num))
+        # print("Game #{}".format(game_num))
         board = game.board()
         for move in game.mainline_moves():
             if board.fen() not in move_dictionary:
