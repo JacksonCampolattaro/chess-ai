@@ -1,5 +1,6 @@
 import numpy as np
-import chess
+import feature_extractor
+
 
 class ChessAI_Naive_Bayes_Engine:
     def __init__(self):
@@ -7,7 +8,12 @@ class ChessAI_Naive_Bayes_Engine:
         self.num_trained_moves = 0
         self.num_total_moves = 0
 
-    def train(self, move_dictionary):
+    def train(self, pgn_file):
+        # Uses feature extractor to get train data from pgn file, then trains from dictionary
+        move_dict = feature_extractor.nb_extract_moves(pgn_file)
+        self.train_from_dict(move_dict)
+
+    def train_from_dict(self, move_dictionary):
         # Convert count dictionary into Naive-Bayes probability matrix
         # NB Model Format
         #   0           0           "Loss"            "Win"
