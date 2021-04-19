@@ -39,8 +39,7 @@ def main():
 
         # Send a fresh board, when asked
         elif command == "ucinewgame":
-            pass
-            #print("position fen " + chess.Board().fen())
+            stack.append("position fen " + chess.Board().fen())
 
         # This is how we get told the current board state
         elif command.startswith("position"):

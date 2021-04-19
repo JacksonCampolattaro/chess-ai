@@ -3,8 +3,16 @@ import chess.pgn
 import chess.engine
 
 import engines.dumb
+import grader
+
 
 def main():
+    our_engine = chess.engine.SimpleEngine.popen_uci("./uci.py")
+
+    print(grader.grade(our_engine))
+
+
+def play():
 
     our_engine = chess.engine.SimpleEngine.popen_uci("./uci.py")
     other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
@@ -34,7 +42,6 @@ def main():
     print()
     print(board.result())
     print(len(board.move_stack))
-
 
 
 if __name__ == '__main__':
