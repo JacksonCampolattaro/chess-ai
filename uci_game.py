@@ -7,8 +7,7 @@ def main():
     engine = engines.chessAI_nb.ChessAI_Naive_Bayes_Engine() # Change engine here
     train_file = "lichess_db_standard_rated_2013-01.pgn"
 
-    if engine is engines.chessAI_nb.ChessAI_Naive_Bayes_Engine:
-        engine.train(train_file)
+    engine.train(train_file)
 
     # Start game
     b = chess.Board()

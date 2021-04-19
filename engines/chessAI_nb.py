@@ -1,6 +1,5 @@
 import numpy as np
-import feature_extractor
-
+from . import feature_extractor
 
 class ChessAI_Naive_Bayes_Engine:
     def __init__(self):
