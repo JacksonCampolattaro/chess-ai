@@ -1,8 +1,6 @@
-import numpy as np
 import chess.pgn
 import chess.engine
 
-import engines.dumb
 import grader
 
 
@@ -13,9 +11,9 @@ def main():
 
 
 def play():
-
-    our_engine = chess.engine.SimpleEngine.popen_uci("./uci.py")
-    other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
+    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/program.py")
+    other_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/program.py")
+    # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
     game = chess.pgn.Game()
     board = game.board()
@@ -45,4 +43,4 @@ def play():
 
 
 if __name__ == '__main__':
-    main()
+    play()

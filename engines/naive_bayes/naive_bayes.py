@@ -1,7 +1,10 @@
 import numpy as np
-from . import feature_extractor
+import feature_extractor
+from engines.uci import UCIEngine
 
-class ChessAI_Naive_Bayes_Engine:
+
+class NaiveBayesEngine(UCIEngine):
+
     def __init__(self):
         self.model = np.array([])
         self.num_trained_moves = 0
@@ -30,7 +33,7 @@ class ChessAI_Naive_Bayes_Engine:
         PX = np.divide(np.sum(np.array(data[:, 1:], dtype=int), axis=1), self.num_total_moves)
         PY = np.divide(winning_move_count, self.num_total_moves)
         # Format model's np matrix
-        self.model = np.zeros([2+data.shape[0], 4], dtype=object)
+        self.model = np.zeros([2 + data.shape[0], 4], dtype=object)
         self.model[0, [2, 3]] = ["Loss", "Win"]
         self.model[2:, 0] = data[:, 0]
         self.model[1, [2, 3]] = PY
@@ -47,12 +50,12 @@ class ChessAI_Naive_Bayes_Engine:
             if key not in self.model[2:, 0]:
                 self.num_trained_moves += 1
                 self.num_total_moves += 1
-                PX = 1/self.num_total_moves
-                PXY = [1/self.num_trained_moves, 1/self.num_trained_moves]
+                PX = 1 / self.num_total_moves
+                PXY = [1 / self.num_trained_moves, 1 / self.num_trained_moves]
                 np.append(self.model, [key, PX, PXY])
                 # print(self.model)
             index = np.argwhere(self.model[:, 0] == key)
-            PYX = (self.model[1, 3]*self.model[index, 3])/(self.model[index, 1])
+            PYX = (self.model[1, 3] * self.model[index, 3]) / (self.model[index, 1])
             scores.append(PYX)
         return list(legal_moves)[np.argmax(scores)]
 
