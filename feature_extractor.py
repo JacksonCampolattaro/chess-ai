@@ -17,10 +17,40 @@ for board in boards
 
 """
 import chess.pgn
+import chess
+import chessAI_nb
 
 prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
-end_amount = 100
+end_amount = 1000
+
+
+def nb_extract_moves(pgn_file):
+    # Special feature extractor for naive-bayes. Features ignore board state
+    move_dictionary = {}
+    pgn = open(pgn_file)
+    game = chess.pgn.read_game(pgn)
+    game_num = 1
+    while game is not None and (game_num <= end_amount or not end_early):
+        # Get game details and determine a winner
+        game_result = game.headers["Result"]
+        winner = chess.WHITE*(game_result == "1-0") + chess.BLACK*(game_result == "0-1")
+        board = game.board()
+        # Start going through each move in the game, white goes first
+        move_color = chess.WHITE
+        for move in game.mainline_moves():
+            if move.uci() not in move_dictionary:
+                move_dictionary[move.uci()] = [0, 0]  # Dict. Format = [move]->[# losses, # wins]
+            move_dictionary[move.uci()][move_color == winner] += 1  # Tallying whether move helped result in a win/loss
+            # Take next move and update move color
+            board.push(move)
+            move_color = not move_color
+
+        game = chess.pgn.read_game(pgn)
+        game_num += 1
+
+    return move_dictionary
+
 
 def extract_boards_and_moves(pgn_file):
     move_dictionary = {}
@@ -39,6 +69,7 @@ def extract_boards_and_moves(pgn_file):
         game_num += 1
     return move_dictionary
 
+
 def get_labels_from_dict(move_dict, feature_filename, label_filename):
     feature_file = open(feature_filename, 'w')
     label_file = open(label_filename, 'w')
@@ -51,5 +82,9 @@ def get_labels_from_dict(move_dict, feature_filename, label_filename):
 
 if __name__ == '__main__':
     pgn_file = "lichess_db_standard_rated_2013-01.pgn"
-    move_dictionary = extract_boards_and_moves(pgn_file)
-    get_labels_from_dict(move_dictionary, "features.txt", "labels.txt")
+    move_dictionary = nb_extract_moves(pgn_file)
+    nb = chessAI_nb.ChessAI_Naive_Bayes()
+    nb.train(move_dictionary)
+    b = chess.Board()
+    move = nb.predict(b)
+    print(move.uci())
