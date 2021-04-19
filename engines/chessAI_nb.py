@@ -55,3 +55,9 @@ class ChessAI_Naive_Bayes_Engine:
             PYX = (self.model[1, 3]*self.model[index, 3])/(self.model[index, 1])
             scores.append(PYX)
         return list(legal_moves)[np.argmax(scores)]
+
+    def save_model(self, file_name="naive_bayes_model.bin"):
+        np.save(file_name, self.model)
+
+    def load_model(self, file_name="naive_bayes_model.bin"):
+        self.model = np.load(file_name)
