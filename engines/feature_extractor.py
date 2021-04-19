@@ -18,7 +18,6 @@ for board in boards
 """
 import chess.pgn
 import chess
-from engines import chessAI_nb
 
 prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
@@ -78,19 +77,3 @@ def get_labels_from_dict(move_dict, feature_filename, label_filename):
         moves = move_dict[board]
         mode_move = max(set(moves), key=moves.count)
         label_file.write(mode_move.__str__() + "\n")
-
-
-if __name__ == '__main__':
-    pgn_file = "lichess_db_standard_rated_2013-01.pgn"
-    move_dictionary = nb_extract_moves(pgn_file)
-    nb = chessAI_nb.ChessAI_Naive_Bayes()
-    nb.train(move_dictionary)
-    b = chess.Board()
-    while not b.is_game_over():
-        print(b)
-        uci_in = input("UCI> ")
-        player_move = chess.Move.from_uci(uci_in)
-        b.push(player_move)
-        nb_move = nb.predict(b)
-        print("NB>", nb_move.uci())
-        b.push(nb_move)
