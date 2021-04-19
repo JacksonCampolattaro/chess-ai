@@ -6,7 +6,7 @@ import engines.dumb
 
 def main():
 
-    our_engine = engines.dumb.RandomEngine()
+    our_engine = chess.engine.SimpleEngine.popen_uci("./uci.py")
     other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
     game = chess.pgn.Game()
@@ -20,7 +20,8 @@ def main():
         if board.turn:
 
             print("Our engine's move:")
-            board.push(our_engine.choose_move(board))
+            result = our_engine.play(board, chess.engine.Limit(time=0.1))
+            board.push(result.move)
 
         else:
 
@@ -32,6 +33,7 @@ def main():
 
     print()
     print(board.result())
+    print(len(board.move_stack))
 
 
 
