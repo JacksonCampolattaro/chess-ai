@@ -1,4 +1,5 @@
-import numpy
+
+import random
 import engines.uci
 
 
@@ -9,7 +10,7 @@ class RandomEngine(engines.uci.UCIEngine):
 
     def choose_move(self, board):
         moves = [move for move in board.legal_moves]
-        return numpy.random.choice(moves)
+        return random.choice(moves)
 
     def save_model(self, file_name):
         pass

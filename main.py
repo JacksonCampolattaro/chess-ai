@@ -11,9 +11,11 @@ def main():
 
 
 def play():
+    # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/program.py")
+    # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
+
     our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/program.py")
     other_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/program.py")
-    # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
     game = chess.pgn.Game()
     board = game.board()
