@@ -1,13 +1,14 @@
 import chess.pgn
 import chess.engine
+import engines.naive_bayes.engine
 
 import grader
 
 
 def main():
-    our_engine = chess.engine.SimpleEngine.popen_uci("./uci.py")
-
-    print(grader.grade(our_engine))
+    nb = engines.naive_bayes.engine.NaiveBayesEngine()
+    nb.train("/home/jackcamp/Documents/chess-ai/lichess_db_standard_rated_2013-01.pgn")
+    nb.save_model()
 
 
 def play():
@@ -33,7 +34,7 @@ def play():
 
         else:
 
-            print("Stockfish's move:")
+            print("Other engine's move:")
             result = other_engine.play(board, chess.engine.Limit(time=0.1))
             board.push(result.move)
 

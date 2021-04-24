@@ -1,5 +1,7 @@
+import os.path
+
 import numpy as np
-import feature_extractor
+from engines.naive_bayes import feature_extractor
 from engines.uci import UCIEngine
 
 
@@ -59,8 +61,10 @@ class NaiveBayesEngine(UCIEngine):
             scores.append(PYX)
         return list(legal_moves)[np.argmax(scores)]
 
-    def save_model(self, file_name="naive_bayes_model.bin"):
-        np.save(file_name, self.model)
+    def save_model(self, file_name="naive_bayes_model"):
+        directory = os.path.dirname(os.path.realpath(__file__))
+        np.save(os.path.join(directory, file_name), self.model)
 
-    def load_model(self, file_name="naive_bayes_model.bin"):
-        self.model = np.load(file_name)
+    def load_model(self, file_name="naive_bayes_model"):
+        directory = os.path.dirname(os.path.realpath(__file__))
+        self.model = np.load(os.path.join(directory, file_name) + ".npy", allow_pickle=True)

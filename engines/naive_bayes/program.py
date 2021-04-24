@@ -3,4 +3,6 @@
 from engine import NaiveBayesEngine
 
 if __name__ == "__main__":
-    NaiveBayesEngine().main()
+    nb = NaiveBayesEngine()
+    nb.load_model()
+    nb.main()

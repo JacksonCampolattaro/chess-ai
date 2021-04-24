@@ -45,9 +45,6 @@ class UCIEngine:
                 print("id author MeanSquares")
                 print("uciok")
 
-                # This is when we'll train our model, if necessary
-                engine.train("lichess_db_standard_rated_2013-01.pgn")
-
             # Always report ready when asked
             elif command == "isready":
                 print("readyok")
