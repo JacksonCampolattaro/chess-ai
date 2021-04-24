@@ -8,74 +8,59 @@ import re
 # https://github.com/thomasahle/sunfish/blob/master/uci.py
 
 
-class UCIEngine:
+def main(engine):
 
-    def train(self, data):
-        raise NotImplementedError
+    logging.basicConfig(level=logging.CRITICAL)
 
-    def choose_move(self, board):
-        raise NotImplementedError
+    board = chess.Board()
 
-    def save_model(self, file_name):
-        raise NotImplementedError
+    stack = []
+    while True:
 
-    def load_model(self, file_name):
-        raise NotImplementedError
+        # Get the user's command
+        command = stack.pop() if stack else input()
 
-    def main(self):
+        # If the command is quit, stop parsing
+        if command == "quit":
+            break
 
-        logging.basicConfig(level=logging.CRITICAL)
+        # If the command is uci, identify yourself
+        elif command == "uci":
+            print("id name Test")
+            print("id author MeanSquares")
+            print("uciok")
 
-        board = chess.Board()
-        engine = self
+        # Always report ready when asked
+        elif command == "isready":
+            print("readyok")
 
-        stack = []
-        while True:
+        # Send a fresh board, when asked
+        elif command == "ucinewgame":
+            stack.append("position fen " + chess.Board().fen())
 
-            # Get the user's command
-            command = stack.pop() if stack else input()
+        # This is how we get told the current board state
+        elif command.startswith("position"):
 
-            # If the command is quit, stop parsing
-            if command == "quit":
-                break
+            # Get the different parts of the argument
+            arguments = re.split(r"position | moves ", command)[1:]
+            starting_position_argument = arguments[0]
 
-            # If the command is uci, identify yourself
-            elif command == "uci":
-                print("id name Test")
-                print("id author MeanSquares")
-                print("uciok")
+            # Parse the starting position
+            board = chess.Board(starting_position_argument[4:]) \
+                if starting_position_argument.startswith("fen") else chess.Board()
 
-            # Always report ready when asked
-            elif command == "isready":
-                print("readyok")
+            # Parse the moves
+            moves = [] if len(arguments) == 1 else arguments[1].split(' ')
 
-            # Send a fresh board, when asked
-            elif command == "ucinewgame":
-                stack.append("position fen " + chess.Board().fen())
+            # Apply each move to the board
+            for move_string in moves:
+                board.push(chess.Move.from_uci(move_string))
 
-            # This is how we get told the current board state
-            elif command.startswith("position"):
+        # This is how we choose the next move
+        elif command.startswith("go"):
 
-                # Get the different parts of the argument
-                arguments = re.split(r"position | moves ", command)[1:]
-                starting_position_argument = arguments[0]
+            print("bestmove " + engine.choose_move(board).uci())
 
-                # Parse the starting position
-                board = chess.Board(starting_position_argument[4:]) \
-                    if starting_position_argument.startswith("fen") else chess.Board()
-
-                # Parse the moves
-                moves = [] if len(arguments) == 1 else arguments[1].split(' ')
-
-                # Apply each move to the board
-                for move_string in moves:
-                    board.push(chess.Move.from_uci(move_string))
-
-            # This is how we choose the next move
-            elif command.startswith("go"):
-
-                print("bestmove " + engine.choose_move(board).uci())
-
-            # Don't do anything for unrecognized commands
-            else:
-                pass
+        # Don't do anything for unrecognized commands
+        else:
+            pass

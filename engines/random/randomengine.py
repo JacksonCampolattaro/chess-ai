@@ -1,9 +1,9 @@
 
 import random
-import engines.uci
+from engines.engine import Engine
 
 
-class RandomEngine(engines.uci.UCIEngine):
+class RandomEngine(Engine):
 
     def train(self, data):
         pass
