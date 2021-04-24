@@ -2,10 +2,10 @@ import os.path
 
 import numpy as np
 from engines.naive_bayes import feature_extractor
-from engines.uci import UCIEngine
+from engines.engine import Engine
 
 
-class NaiveBayesEngine(UCIEngine):
+class NaiveBayesEngine(Engine):
 
     def __init__(self):
         self.model = np.array([])
