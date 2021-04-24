@@ -21,7 +21,7 @@ import chess
 
 prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
-end_amount = 3000
+end_amount = 30000
 
 
 def nb_extract_moves(pgn_file):

@@ -1,17 +1,8 @@
 import chess.pgn
 import chess.engine
-import engines.naive_bayes.naivebayesengine
-
-import grader
 
 
 def main():
-    nb = engines.naive_bayes.naivebayesengine.NaiveBayesEngine()
-    nb.train("/home/jackcamp/Documents/chess-ai/lichess_db_standard_rated_2013-01.pgn")
-    nb.save_model()
-
-
-def play():
     # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/naivebayesprogram.py")
     # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
@@ -46,4 +37,4 @@ def play():
 
 
 if __name__ == '__main__':
-    play()
+    main()

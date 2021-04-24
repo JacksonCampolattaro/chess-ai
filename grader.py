@@ -6,8 +6,6 @@ def play(engine1, engine2):
     game = chess.pgn.Game()
     board = game.board()
 
-    print(".", end="")
-
     while not board.is_game_over(claim_draw=True):
 
         if board.turn:
@@ -19,6 +17,9 @@ def play(engine1, engine2):
 
             result = engine2.play(board, chess.engine.Limit(time=0.1))
             board.push(result.move)
+
+    print("W" if board.outcome(claim_draw=True).winner else "L", end="")
+    # print(len(board.move_stack))
 
     return board
 
@@ -33,4 +34,9 @@ def grade(engine):
     return sum(movecounts) / 100
 
 
+if __name__ == "__main__":
+    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/naivebayesprogram.py")
+    # our_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
+    print()
+    print(grade(our_engine))
 
