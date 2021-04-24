@@ -13,13 +13,13 @@ from engines.engine import Engine
 class FernanNaiveBayesEngine(Engine):
 
     def __init__(self):
-
+        pass
 
     def train(self, pgn_file):
-
+        pass
 
     def choose_move(self, board):
-
+        pass
 
     def has_model(self, file_name="fs_naive_bayes_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
