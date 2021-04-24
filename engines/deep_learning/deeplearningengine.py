@@ -2,18 +2,19 @@ import numpy as np
 import chess.pgn
 
 from engines.engine import Engine
-from engines.extractfeatures import extract_features, extract_features_sparse
+from engines.extractfeatures import interpret_training_data
 
 
 class DeepLearningEngine(Engine):
 
     def train(self, pgn_file):
-        pgn = open(pgn_file)
+        training_data = interpret_training_data(pgn_file)
+        # TODO build & train the model
+        pass
 
-        for i in range(100):
-            game = chess.pgn.read_game(pgn)
-            board = game.board()
-            print(extract_features_sparse(board))
+    def choose_square(self, board):
+        # TODO Find the appropriate square, based on the current board state
+        # return type chess.Square()
         pass
 
     def choose_move(self, board):
