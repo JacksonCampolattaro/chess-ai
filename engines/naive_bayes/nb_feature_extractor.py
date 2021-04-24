@@ -20,7 +20,7 @@ import chess.pgn
 import chess
 
 end_early = True
-end_amount = 30000
+end_amount = 3000
 
 
 def simple_nb_extract_moves(pgn_file):
