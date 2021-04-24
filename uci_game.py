@@ -1,13 +1,11 @@
-import engines.chessAI_nb
-import engines.dumb
 import chess
+
+from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
 
 
 def main():
-    engine = engines.chessAI_nb.ChessAI_Naive_Bayes_Engine() # Change engine here
-    train_file = "lichess_db_standard_rated_2013-01.pgn"
-
-    engine.train(train_file)
+    engine = NaiveBayesEngine()  # Change engine here
+    engine.load_model()
 
     # Start game
     b = chess.Board()
@@ -23,7 +21,6 @@ def main():
         else:
             print("Illegal move.")
     pass
-
 
 
 if __name__ == '__main__':
