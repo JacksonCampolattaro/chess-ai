@@ -61,6 +61,10 @@ class NaiveBayesEngine(UCIEngine):
             scores.append(PYX)
         return list(legal_moves)[np.argmax(scores)]
 
+    def has_model(self, file_name="naive_bayes_model"):
+        directory = os.path.dirname(os.path.realpath(__file__))
+        return os.path.exists(os.path.join(directory, file_name) + ".npy")
+
     def save_model(self, file_name="naive_bayes_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
         np.save(os.path.join(directory, file_name), self.model)
