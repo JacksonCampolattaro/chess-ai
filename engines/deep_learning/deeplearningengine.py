@@ -2,7 +2,7 @@ import numpy as np
 import chess.pgn
 
 from engines.engine import Engine
-from engines.extractfeatures import extract_features
+from engines.extractfeatures import extract_features, extract_features_sparse
 
 
 class DeepLearningEngine(Engine):
@@ -13,7 +13,7 @@ class DeepLearningEngine(Engine):
         for i in range(100):
             game = chess.pgn.read_game(pgn)
             board = game.board()
-            print(extract_features(board).size)
+            print(extract_features_sparse(board))
         pass
 
     def choose_move(self, board):
