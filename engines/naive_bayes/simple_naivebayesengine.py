@@ -1,7 +1,7 @@
 import os.path
 
 import numpy as np
-from engines.naive_bayes import feature_extractor
+from engines.naive_bayes import nb_feature_extractor
 from engines.engine import Engine
 
 
@@ -14,7 +14,7 @@ class NaiveBayesEngine(Engine):
 
     def train(self, pgn_file):
         # Uses feature extractor to get train data from pgn file, then trains from dictionary
-        move_dict = feature_extractor.nb_extract_moves(pgn_file)
+        move_dict = nb_feature_extractor.nb_extract_moves(pgn_file)
         self.train_from_dict(move_dict)
 
     def train_from_dict(self, move_dictionary):
@@ -60,6 +60,10 @@ class NaiveBayesEngine(Engine):
             PYX = (self.model[1, 3] * self.model[index, 3]) / (self.model[index, 1])
             scores.append(PYX)
         return list(legal_moves)[np.argmax(scores)]
+
+    def has_model(self, file_name="naive_bayes_model"):
+        directory = os.path.dirname(os.path.realpath(__file__))
+        return os.path.exists(os.path.join(directory, file_name) + ".npy")
 
     def save_model(self, file_name="naive_bayes_model"):
         directory = os.path.dirname(os.path.realpath(__file__))

@@ -1,11 +1,15 @@
 import chess
 
-from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
+from engines.naive_bayes.simple_naivebayesengine import NaiveBayesEngine
 
 
 def main():
     engine = NaiveBayesEngine()  # Change engine here
-    engine.load_model()
+    if engine.has_model():
+        engine.load_model()
+    else:
+        engine.train("lichess_db_standard_rated_2013-01.pgn")
+        engine.save_model()
 
     # Start game
     b = chess.Board()

@@ -1,5 +1,5 @@
 """
-feature_extractor.py
+nb_feature_extractor.py
 
 Runs through Lichess dataset and extracts mode label (i.e. most common move) for each feature (board state).
 
@@ -19,12 +19,11 @@ for board in boards
 import chess.pgn
 import chess
 
-prune_loser = False  # [TODO] Make an option to only consider winners' moves.
 end_early = True
 end_amount = 30000
 
 
-def nb_extract_moves(pgn_file):
+def simple_nb_extract_moves(pgn_file):
     # Special feature extractor for naive-bayes. Features ignore board state
     move_dictionary = {}
     pgn = open(pgn_file)
