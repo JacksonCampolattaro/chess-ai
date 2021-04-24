@@ -14,7 +14,7 @@ class NaiveBayesEngine(Engine):
 
     def train(self, pgn_file):
         # Uses feature extractor to get train data from pgn file, then trains from dictionary
-        move_dict = nb_feature_extractor.nb_extract_moves(pgn_file)
+        move_dict = nb_feature_extractor.simple_nb_extract_moves(pgn_file)
         self.train_from_dict(move_dict)
 
     def train_from_dict(self, move_dictionary):
