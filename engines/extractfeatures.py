@@ -2,6 +2,7 @@ import chess
 import chess.pgn
 import numpy as np
 
+
 def extract_features(board):
     encodings = []
     for piece_type in chess.PIECE_TYPES:
@@ -61,7 +62,7 @@ def interpret_training_data(pgn_file, end_early=-1):
                 move_dictionary[key][0].append(from_space)
                 move_dictionary[key][move_piece].append(into_space)
 
-                board.push(move)
+            board.push(move)
 
             move_color = not move_color
 
@@ -69,6 +70,7 @@ def interpret_training_data(pgn_file, end_early=-1):
         game = chess.pgn.read_game(pgn)
 
     return move_dictionary
+
 
 if __name__ == '__main__':
     pgn_file = "../lichess_db_standard_rated_2013-01.pgn"
