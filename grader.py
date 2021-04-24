@@ -35,7 +35,7 @@ def grade(engine):
 
 
 if __name__ == "__main__":
-    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/naivebayesprogram.py")
+    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/old_naive_bayes/naivebayesprogram.py")
     # our_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
     print()
     print(grade(our_engine))

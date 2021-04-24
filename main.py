@@ -3,10 +3,10 @@ import chess.engine
 
 
 def play():
-    # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/simple_naivebayesprogram.py")
+    # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/old_naivebayesprogram.py")
     # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
-    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/simple_naivebayesprogram.py")
+    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/old_naive_bayes/old_naivebayesprogram.py")
     other_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/randomprogram.py")
 
     game = chess.pgn.Game()

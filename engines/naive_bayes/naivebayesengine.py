@@ -6,7 +6,7 @@ This approach was developed
 import os.path
 
 import numpy as np
-from engines.naive_bayes import nb_feature_extractor
+from engines.old_naive_bayes import old_nb_feature_extractor
 from engines.engine import Engine
 
 

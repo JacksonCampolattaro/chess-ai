@@ -1,4 +1,4 @@
-import engines.naive_bayes.naivebayesengine
+import engines.old_naive_bayes.naivebayesengine
 
 
 def main():
