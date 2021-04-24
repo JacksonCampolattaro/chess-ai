@@ -61,7 +61,7 @@ def interpret_training_data(pgn_file, end_early=-1):
                 move_dictionary[key][0].append(from_space)
                 move_dictionary[key][move_piece].append(into_space)
 
-                print(move_dictionary[key])
+                board.push(move)
 
             move_color = not move_color
 
