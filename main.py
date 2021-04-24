@@ -1,22 +1,22 @@
 import chess.pgn
 import chess.engine
-import engines.naive_bayes.engine
+import engines.naive_bayes.naivebayesengine
 
 import grader
 
 
 def main():
-    nb = engines.naive_bayes.engine.NaiveBayesEngine()
+    nb = engines.naive_bayes.naivebayesengine.NaiveBayesEngine()
     nb.train("/home/jackcamp/Documents/chess-ai/lichess_db_standard_rated_2013-01.pgn")
     nb.save_model()
 
 
 def play():
-    # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/program.py")
+    # our_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/naivebayesprogram.py")
     # other_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
 
-    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/program.py")
-    other_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/program.py")
+    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/naivebayesprogram.py")
+    other_engine = chess.engine.SimpleEngine.popen_uci("./engines/random/randomprogram.py")
 
     game = chess.pgn.Game()
     board = game.board()

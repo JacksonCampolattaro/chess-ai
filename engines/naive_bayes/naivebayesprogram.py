@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from engine import NaiveBayesEngine
+from naivebayesengine import NaiveBayesEngine
 
 if __name__ == "__main__":
     nb = NaiveBayesEngine()
