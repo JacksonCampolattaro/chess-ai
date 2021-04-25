@@ -1,5 +1,6 @@
 """
-This approach was developed in response to the old Naive-Bayes implementation
+This approach was developed in response to the old Naive-Bayes implementation's lackluster performance and it's lack of
+'awareness.' So, we adapted
 """
 
 import os.path
@@ -9,8 +10,7 @@ import chess
 from engines import extractfeatures
 from engines.engine import Engine
 
-train_limit = 300
-
+train_limit = 3000
 
 class NaiveBayesEngine(Engine):
 
@@ -40,18 +40,18 @@ class NaiveBayesEngine(Engine):
                     conditionalFeatureCount[i, label, fs_indexes] += 1
 
         prior_prob = [row / np.sum(row) for row in labelCount]
-        conditional_prob = [np.transpose(column / np.sum(column)) for column in
-                            [np.transpose(table) for table in conditionalFeatureCount]]
-        # conditional_prob = conditionalFeatureCount / np.sum(conditionalFeatureCount, axis=2)[:, :, np.newaxis]
+        div = np.repeat(np.sum(conditionalFeatureCount, axis=2)[:, :, np.newaxis], 768, axis=2) + 768
+        with np.errstate(invalid='ignore', divide='ignore'):
+            conditional_prob = (conditionalFeatureCount + 1) / div
 
         # Store data into the models
         self.move_select_model = self.prep_model(prior_prob[0], conditional_prob[0])
-        self.pawn_model = self.prep_model(prior_prob[1], conditional_prob[1])
-        self.knight_model = self.prep_model(prior_prob[2], conditional_prob[2])
-        self.bishop_model = self.prep_model(prior_prob[3], conditional_prob[3])
-        self.rook_model = self.prep_model(prior_prob[4], conditional_prob[4])
-        self.queen_model = self.prep_model(prior_prob[5], conditional_prob[5])
-        self.king_model = self.prep_model(prior_prob[6], conditional_prob[6])
+        self.pawn_model = self.prep_model(prior_prob[chess.PAWN], conditional_prob[chess.PAWN])
+        self.knight_model = self.prep_model(prior_prob[chess.KNIGHT], conditional_prob[chess.KNIGHT])
+        self.bishop_model = self.prep_model(prior_prob[chess.BISHOP], conditional_prob[chess.BISHOP])
+        self.rook_model = self.prep_model(prior_prob[chess.ROOK], conditional_prob[chess.ROOK])
+        self.queen_model = self.prep_model(prior_prob[chess.QUEEN], conditional_prob[chess.QUEEN])
+        self.king_model = self.prep_model(prior_prob[chess.KING], conditional_prob[chess.KING])
 
     def prep_model(self, prior_prob, conditional_prob):
         model = np.zeros([64, 768 + 1])
@@ -59,23 +59,75 @@ class NaiveBayesEngine(Engine):
         model[:, 1:] = conditional_prob
         return model
 
-    def choose_move(self, board):
-        pass
+    def get_scores(self, feature_set, model):
+        where_inv = np.argwhere(feature_set == 0) + 1
+        updated_model = model.copy()
+        updated_model[:, where_inv] = 1 - model[:, where_inv]
+        scores = np.prod(updated_model[:, 1:], axis=1)
+        scores = scores * updated_model[:, 0]
+        return scores
 
-    def has_model(self, file_name="fs_naive_bayes_model"):
+    def choose_move(self, board):
+        # First, select which piece should be moved
+        feature_set = extractfeatures.extract_features_sparse(board)
+        # Get all possible moves and their starting locations
+        possible_moves = np.array(list(board.legal_moves))
+        possible_from_squares = np.unique([move.from_square for move in possible_moves])
+        # Use NaiveBayes move_select_model to select the best starting (from) square
+        scores = self.get_scores(feature_set, self.move_select_model)
+        mask = np.zeros(scores.shape)
+        mask[possible_from_squares] = 1
+        scores = scores*mask  # Set all illegal from squares to 0
+        best_from_square = np.argmax(scores)
+        # Create possible ending (to) squares based on selection
+        possible_moves = [move for move in possible_moves if move.from_square == best_from_square]
+        possible_to_squares = np.unique([move.to_square for move in possible_moves if move.from_square == best_from_square])
+        # Select movement model based on piece type
+        move_piece = board.piece_at(best_from_square).piece_type
+        piece_model = self.select_model(move_piece)
+        # Use selected NaiveBayes model to select the best to square
+        scores = self.get_scores(feature_set, piece_model)
+        mask = np.zeros(scores.shape)
+        mask[possible_to_squares] = 1
+        scores = scores*mask  # Set all illegal to squares to 0
+        best_to_square = np.argmax(scores)
+        # Create move based on findings
+        move = chess.Move(from_square=best_from_square, to_square=best_to_square)
+        return move
+
+    def select_model(self, piece_type):
+        if piece_type == chess.PAWN:
+            return self.pawn_model
+        elif piece_type == chess.KNIGHT:
+            return self.knight_model
+        elif piece_type == chess.BISHOP:
+            return self.bishop_model
+        elif piece_type == chess.ROOK:
+            return self.rook_model
+        elif piece_type == chess.QUEEN:
+            return self.queen_model
+        elif piece_type == chess.KING:
+            return self.king_model
+        else:
+            return self.move_select_model
+
+    def has_model(self, file_name="naive_bayes_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
         return os.path.exists(os.path.join(directory, file_name) + ".npy")
 
-    def save_model(self, file_name="fs_naive_bayes_model"):
+    def save_model(self, file_name="naive_bayes_model"):
+        models = np.array([self.move_select_model, self.pawn_model, self.knight_model,
+                           self.bishop_model, self.rook_model, self.queen_model, self.king_model])
         directory = os.path.dirname(os.path.realpath(__file__))
-        np.save(os.path.join(directory, file_name), self.model)
+        np.save(os.path.join(directory, file_name), models)
 
-    def load_model(self, file_name="fs_naive_bayes_model"):
+    def load_model(self, file_name="naive_bayes_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
-        self.model = np.load(os.path.join(directory, file_name) + ".npy", allow_pickle=True)
-
-
-if __name__ == '__main__':
-    nb = NaiveBayesEngine()
-    nb.train("lichess_db_standard_rated_2013-01.pgn")
-    print(nb.move_select_model)
+        models = np.load(os.path.join(directory, file_name) + ".npy", allow_pickle=True)
+        self.move_select_model = models[0]
+        self.pawn_model = models[chess.PAWN]
+        self.knight_model = models[chess.KNIGHT]
+        self.bishop_model = models[chess.BISHOP]
+        self.rook_model = models[chess.ROOK]
+        self.queen_model = models[chess.QUEEN]
+        self.king_model = models[chess.KING]

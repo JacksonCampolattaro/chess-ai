@@ -1,7 +1,6 @@
 import chess
 
-from engines.old_naive_bayes.old_naivebayesengine import NaiveBayesEngine
-
+from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
 
 def main():
     engine = NaiveBayesEngine()  # Change engine here
