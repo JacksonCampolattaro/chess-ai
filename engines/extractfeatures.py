@@ -19,6 +19,18 @@ def extract_features_sparse(board):
     return np.concatenate(encodings)
 
 
+def create_bitboard(indices: list):
+    board = np.empty(shape=64, dtype=bool)
+    board[indices] = True
+    return board
+
+
+def create_floatboard(indices: list):
+    board = np.zeros(shape=64, dtype=np.float16)
+    board[indices] = 1.0
+    return board
+
+
 def interpret_training_data(pgn_file, end_early=-1):
     """
     :param pgn_file:    File name of PGN file to extract data from.

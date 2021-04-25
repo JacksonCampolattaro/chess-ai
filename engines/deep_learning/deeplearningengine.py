@@ -1,4 +1,5 @@
 import os
+from itertools import zip_longest
 
 import chess.pgn
 
@@ -6,10 +7,16 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
 
 from engines.engine import Engine
-from engines.extractfeatures import interpret_training_data, extract_features
+from engines.extractfeatures import interpret_training_data, extract_features, create_bitboard, create_floatboard
 
+
+# From
+# https://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks
+def chunks(seq, size):
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 class DeepLearningEngine(Engine):
 
@@ -17,11 +24,11 @@ class DeepLearningEngine(Engine):
         self.input_encoding_size = 384
         self.output_encoding_size = 64
 
-        self.num_epochs = 2
-        self.batch_size = 100
+        self.batch_size = 10
 
         self.learning_rate = 0.0015
-        self.loss_function = torch.nn.NLLLoss()
+        # self.loss_function = torch.nn.CrossEntropyLoss()
+        self.loss_function = torch.nn.L1Loss()
 
         hidden_layer_size = self.input_encoding_size * 2
 
@@ -30,7 +37,7 @@ class DeepLearningEngine(Engine):
             torch.nn.Linear(self.input_encoding_size, hidden_layer_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_layer_size, self.output_encoding_size),
-            torch.nn.Softmax(),
+            # torch.nn.Softmax(),
         )
 
         # The piece placer networks select the location to put down the piece
@@ -47,34 +54,43 @@ class DeepLearningEngine(Engine):
         }
 
     def train_piece_chooser(self, training_data):
-        for board_state, move_choices in training_data.items():
-            board_state_decoded = extract_features(chess.Board(board_state))
-            pieces_chosen = move_choices[0]
 
-            x = torch.from_numpy(board_state_decoded)
-            y = pieces_chosen
+        # This optimizer will do gradient descent for us
+        optimizer = optim.SGD(self.piece_chooser.parameters(), lr=self.learning_rate, momentum=0.9)
 
-            print(x)
-            print(y)
+        # Training is done in batches
+        for batch in chunks(list(training_data.items()), self.batch_size):
 
-        # While there's still data
-        # Get a batch of inputs and labels
+            # Extract features and relevant labels from the training dataset
+            features = [extract_features(chess.Board(board)) for board, results in batch]
+            labels = [create_floatboard(results[0]) for board, results in batch]
 
-        # https: // pytorch.org / tutorials / beginner / blitz / cifar10_tutorial.html
+            # Convert features and labels to tensors
+            x = torch.Tensor(features)
+            y = torch.Tensor(labels)
 
-        # Forward propegation
-        # Loss
-        # backpropegation
+            # Reset gradients for gradient descent
+            optimizer.zero_grad()
 
-        # Occasionally print data
+            # Attempt to use the piece chooser model to select a location (forward propegation)
+            pred_y = self.piece_chooser(x)
 
-        pass
+            # Apply the loss function, comparing predicted values to actual
+            loss = self.loss_function(pred_y, y)
+
+            # Backpropagate, and then update weights
+            loss.backward()
+            optimizer.step()
+
+            print(loss.item())
+
+            # print(x, y, pred_y)
 
     def train_piece_placer(self, training_data, piece: chess.PieceType):
         pass
 
     def train(self, pgn_file):
-        training_data = interpret_training_data(pgn_file, 5)
+        training_data = interpret_training_data(pgn_file, 5000)
         self.train_piece_chooser(training_data)
 
         # TODO build & train the model
