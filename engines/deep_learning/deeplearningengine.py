@@ -17,6 +17,9 @@ class DeepLearningEngine(Engine):
         self.input_encoding_size = 384
         self.output_encoding_size = 64
 
+        self.num_epochs = 2
+        self.batch_size = 100
+
         self.learning_rate = 0.0015
         self.loss_function = torch.nn.NLLLoss()
 
@@ -43,33 +46,37 @@ class DeepLearningEngine(Engine):
             for piece in chess.PIECE_TYPES
         }
 
-    def train(self, pgn_file):
-        training_data = interpret_training_data(pgn_file, 5)
+    def train_piece_chooser(self, training_data):
+        for board_state, move_choices in training_data.items():
+            board_state_decoded = extract_features(chess.Board(board_state))
+            pieces_chosen = move_choices[0]
+
+            x = torch.from_numpy(board_state_decoded)
+            y = pieces_chosen
+
+            print(x)
+            print(y)
 
         # While there's still data
-            # Get a batch of inputs and labels
+        # Get a batch of inputs and labels
 
-                #https: // pytorch.org / tutorials / beginner / blitz / cifar10_tutorial.html
+        # https: // pytorch.org / tutorials / beginner / blitz / cifar10_tutorial.html
 
-                # Forward propegation
-                # Loss
-                # backpropegation
+        # Forward propegation
+        # Loss
+        # backpropegation
 
-                # Occasionally print data
+        # Occasionally print data
 
+        pass
 
-        # for board_state, move_choices in training_data.items():
-        #     board_state_decoded = extract_features(chess.Board(board_state))
-        #     piece_chosen = move_choices[0][0]
-        #
-        #     x = torch.from_numpy(board_state_decoded)
-        #     y = piece_chosen
-        #
-        #     loss = self.loss_function()
-        #
-        #     print(x)
-        #     print(y)
-        #
+    def train_piece_placer(self, training_data, piece: chess.PieceType):
+        pass
+
+    def train(self, pgn_file):
+        training_data = interpret_training_data(pgn_file, 5)
+        self.train_piece_chooser(training_data)
+
         # TODO build & train the model
 
     def choose_move(self, board: chess.Board):
