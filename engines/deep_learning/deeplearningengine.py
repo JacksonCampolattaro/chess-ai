@@ -14,13 +14,20 @@ from engines.extractfeatures import interpret_training_data, extract_features
 class DeepLearningEngine(Engine):
 
     def __init__(self):
+
+        self.input_encoding_size = 384
+        self.output_encoding_size = 64
+
         self.learning_rate = 0.0015
+        self.loss_function = torch.nn.MSELoss(reduction='sum')
+
+        hidden_layer_size = self.input_encoding_size * 2
 
         # The piece chooser network selects the location of the piece to pick up from the board
         self.piece_chooser = torch.nn.Sequential(
-            torch.nn.Linear(384, 786),
+            torch.nn.Linear(self.input_encoding_size, hidden_layer_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(786, 64),
+            torch.nn.Linear(hidden_layer_size, self.output_encoding_size),
         )
 
         # The piece placer networks select the location to put down the piece
@@ -29,9 +36,9 @@ class DeepLearningEngine(Engine):
             # Each piece type is mapped to its own neural network
             piece:
                 torch.nn.Sequential(
-                    torch.nn.Linear(384, 786),
+                    torch.nn.Linear(self.input_encoding_size, hidden_layer_size),
                     torch.nn.ReLU(),
-                    torch.nn.Linear(786, 64),
+                    torch.nn.Linear(hidden_layer_size, self.output_encoding_size),
                 )
             for piece in chess.PIECE_TYPES
         }
