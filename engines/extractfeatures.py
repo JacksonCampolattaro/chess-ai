@@ -58,7 +58,7 @@ def interpret_training_data(pgn_file, end_early=-1):
         # Start playing through the game
         move_color = chess.WHITE
         for move in game.mainline_moves():
-            if move_color == winner:  # Only consider winner's moves
+            if move_color == winner and move_color == chess.WHITE:  # Only consider winner's moves
                 key = board.fen()
 
                 # Add feature set to dictionary if not in there already
