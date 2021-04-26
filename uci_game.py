@@ -20,9 +20,15 @@ def main():
         player_move = chess.Move.from_uci(uci_in)
         if player_move in b.legal_moves:
             b.push(player_move)
-            nb_move = engine.choose_move(b)
-            print("NB>", nb_move.uci())
-            b.push(nb_move)
+            if(b.is_game_over()):
+                print("You win!")
+                break
+            engine_move = engine.choose_move(b)
+            print("Engine>", engine_move.uci())
+            b.push(engine_move)
+            if (b.is_game_over()):
+                print("You lose!")
+                break
         else:
             print("Illegal move.")
     pass

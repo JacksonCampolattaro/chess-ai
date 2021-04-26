@@ -24,6 +24,14 @@ class NaiveBayesEngine(Engine):
         self.king_model = []
 
     def train(self, pgn_file, train_limit=-1):
+        """
+        Counts the occurrence of each moves and the conditional occurrence of each feature to generate the Naive Bayes
+        model's internal probability matrices.
+
+        :param pgn_file: String of the .pgn file that the model will train on.
+        :param train_limit: Integer that defines the maximum number of games the model will train on. Default value is
+                -1, which allows the model to train on the .pgn file's entire dataset.
+        """
         # Extract data from pgn file using extractfeatures.py
         move_dict = extractfeatures.interpret_training_data(pgn_file, train_limit)
         # Set up counting vectors
@@ -54,12 +62,38 @@ class NaiveBayesEngine(Engine):
         self.king_model = self.prep_model(prior_prob[chess.KING], conditional_prob[chess.KING])
 
     def prep_model(self, prior_prob, conditional_prob):
+        """
+        Places given prior probability and conditional probability vectors/matrices into a model matrix.
+
+        Matrix format (64x769):
+        P(y = A1)                   P(y = B1)                  P(y = C1)                  ...  P(y = H8)
+        P(w_pawn @ A1 | y = A1)     P(w_pawn @ A1 | y = B1)    P(w_pawn @ A1 | y = C1)    ...  P(w_pawn @ A1 | y = H8)
+        P(w_pawn @ B1 | y = A1)     P(w_pawn @ B1 | y = B1)    P(w_pawn @ B1 | y = C1)    ...  P(w_pawn @ B1 | y = H8)
+        ...
+        P(b_pawn @ A1 | y = A1)     P(b_pawn @ A1 | y = B1)    P(b_pawn @ A1 | y = C1)    ...  P(b_pawn @ A1 | y = H8)
+        ...
+        P(w_knight @ A1 | y = A1)   P(w_knight @ A1 | y = B1)  P(w_knight @ A1 | y = C1)  ...  P(w_knight @ A1 | y = H8)
+        ...
+        P(b_king @ H8 | y = A1)     P(b_king @ H8 | y = B1)    P(b_king @ H8 | y = C1)    ...    P(b_king @ H8 | y = H8)
+
+        :param prior_prob: 64-element vector of prior probabilities of the labels
+        :param conditional_prob: 64x768 matrix of conditional probabilities of features given labels
+        :return: 64x769 model matrix
+        """
         model = np.zeros([64, 768 + 1])
         model[:, 0] = prior_prob
         model[:, 1:] = conditional_prob
         return model
 
     def get_scores(self, feature_set, model):
+        """
+        Calculates the 64-element probability density matrix (i.e. the "scores" of each chess square) given a certain
+        model matrix and feature_set using Naive Bayes.
+
+        :param feature_set:
+        :param model:
+        :return:
+        """
         where_inv = np.argwhere(feature_set == 0) + 1
         updated_model = model.copy()
         updated_model[:, where_inv] = 1 - model[:, where_inv]
@@ -68,6 +102,12 @@ class NaiveBayesEngine(Engine):
         return scores
 
     def choose_move(self, board):
+        """
+        Predicts a legal, optimal move given the board feature set and trained model.
+
+        :param board: python-chess.Board, current board state used to get the model's prediction
+        :return: python-chess.Move, model's prediction based on inputted board and internal probabilities
+        """
         # First, select which piece should be moved
         feature_set = extractfeatures.extract_features_sparse(board)
         # Get all possible moves and their starting locations
@@ -96,6 +136,12 @@ class NaiveBayesEngine(Engine):
         return move
 
     def select_model(self, piece_type):
+        """
+        Abstract dictionary that returns a class model based on a python-chess.piece_type
+
+        :param piece_type: Type of chess piece defined in python-chess library.
+        :return: 64x769 element class sub-model probability matrix.
+        """
         if piece_type == chess.PAWN:
             return self.pawn_model
         elif piece_type == chess.KNIGHT:
@@ -112,16 +158,32 @@ class NaiveBayesEngine(Engine):
             return self.move_select_model
 
     def has_model(self, file_name="naive_bayes_model"):
+        """
+        Returns whether a pre-trained and saved model exists.
+
+        :param file_name: Name of pre-trained model. Default: "naive_bayes_model"
+        :return: Boolean value indicating whether the file exists.
+        """
         directory = os.path.dirname(os.path.realpath(__file__))
         return os.path.exists(os.path.join(directory, file_name) + ".npy")
 
     def save_model(self, file_name="naive_bayes_model"):
+        """
+        Saves the Naive Bayes object's models into a numpy file, so that it may be reloaded later on.
+
+        :param file_name: Name of file to write to. Default: "naive_bayes_model"
+        """
         models = np.array([self.move_select_model, self.pawn_model, self.knight_model,
                            self.bishop_model, self.rook_model, self.queen_model, self.king_model])
         directory = os.path.dirname(os.path.realpath(__file__))
         np.save(os.path.join(directory, file_name), models)
 
     def load_model(self, file_name="naive_bayes_model"):
+        """
+        Reads a pre-trained model and saves it to the object.
+
+        :param file_name: Name of pre-trained model. Default: "naive_bayes_model"
+        """
         directory = os.path.dirname(os.path.realpath(__file__))
         models = np.load(os.path.join(directory, file_name) + ".npy", allow_pickle=True)
         self.move_select_model = models[0]
