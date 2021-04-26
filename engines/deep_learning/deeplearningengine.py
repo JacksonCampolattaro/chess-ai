@@ -67,6 +67,9 @@ def interpret_data(pgn_file, count: int, color: chess.Color):
                 if turn == color:
                     dataset.append(move_as_entry(board, move))
 
+                    if len(dataset) % 10000 == 0:
+                        print('.', end='')
+
                     # If we've generated enough data, return the dataset
                     if len(dataset) >= count:
                         return dataset
@@ -108,14 +111,14 @@ class DeepLearningEngine(Engine):
         # Square pickers are networks that choose a square on the board, based on its current state
         self.square_pickers = [
             torch.nn.Sequential(
-                torch.nn.Conv2d(6, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(6, 2, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(2, 4, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
                 torch.nn.Flatten(),
-                torch.nn.Linear(64, 64),
+                torch.nn.Linear(512, 64),
                 torch.nn.LogSoftmax(dim=1),
             )
             for _ in [0] + list(chess.PIECE_TYPES)
@@ -143,36 +146,37 @@ class DeepLearningEngine(Engine):
                                   lr=self.learning_rate,
                                   weight_decay=self.weight_decay)
 
-        # Training is done in batches
-        running_loss = 0.0
-        for i, batch in enumerate(chunks(training_data, self.batch_size)):
+        for epoch in range(self.num_epochs):
+            # Training is done in batches
+            running_loss = 0.0
+            for i, batch in enumerate(chunks(training_data, self.batch_size)):
 
-            # Extract features and relevant labels from the training dataset
-            features = [features for features, labels in batch]
-            labels = [labels[piece] for features, labels in batch]
+                # Extract features and relevant labels from the training dataset
+                features = [features for features, labels in batch]
+                labels = [labels[piece] for features, labels in batch]
 
-            # Convert features and labels to tensors
-            x = torch.Tensor(features)
-            y = torch.tensor(labels, dtype=torch.long)
+                # Convert features and labels to tensors
+                x = torch.Tensor(features)
+                y = torch.tensor(labels, dtype=torch.long)
 
-            # Reset gradients for gradient descent
-            optimizer.zero_grad()
+                # Reset gradients for gradient descent
+                optimizer.zero_grad()
 
-            # Attempt to use the piece chooser model to select a location (forward propegation)
-            pred_y: torch.Tensor = net(x)
+                # Attempt to use the piece chooser model to select a location (forward propegation)
+                pred_y: torch.Tensor = net(x)
 
-            # Apply the loss function, comparing predicted values to actual
-            loss = self.loss_function(pred_y, y)
+                # Apply the loss function, comparing predicted values to actual
+                loss = self.loss_function(pred_y, y)
 
-            # Backpropagate, and then update weights
-            loss.backward()
-            optimizer.step()
+                # Backpropagate, and then update weights
+                loss.backward()
+                optimizer.step()
 
-            # Print out the loss every few batches
-            running_loss += loss.item() / len(batch)
-            if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
-                print(running_loss)
-                running_loss = 0
+                # Print out the loss every few batches
+                running_loss += loss.item() / len(batch)
+                if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
+                    print(running_loss)
+                    running_loss = 0
 
     def train(self, pgn_file):
         # training_data = interpret_training_data(pgn_file, 5000)
@@ -183,15 +187,13 @@ class DeepLearningEngine(Engine):
 
         # Train the piece chooser
         print("Training piece chooser")
-        for epoch in range(self.num_epochs):
-            self.train_nets(dataset, 0)
+        self.train_nets(dataset, 0)
 
         # Train each piece placer
         for piece in chess.PIECE_TYPES:
             print(f"Training piece placer for {chess.piece_name(piece)}")
             relevant_dataset = [(features, labels) for features, labels in dataset if labels[piece] is not None]
-            for epoch in range(self.num_epochs):
-                self.train_nets(relevant_dataset, piece)
+            self.train_nets(relevant_dataset, piece)
 
         print("done")
 
