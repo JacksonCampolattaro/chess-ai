@@ -5,12 +5,9 @@ import chess.pgn
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 
 from engines.engine import Engine
-from engines.extractfeatures import interpret_training_data, extract_features, create_bitboard, create_floatboard
 
 
 def onehot_board(square: chess.Square):
@@ -179,7 +176,22 @@ class DeepLearningEngine(Engine):
         print("done")
 
     def choose_move(self, board: chess.Board):
-        return None
+
+        # Extract features from the board
+        features = torch.Tensor([extract_features_3d(board)])
+
+        # Use our trained neural nets to determine values for each square
+        square_values = [net(features) for net in self.square_pickers]
+
+        # Helper function to determine the value of a move using the value matrices
+        def value(move: chess.Move):
+            from_square_value = square_values[0].detach().numpy()[0][move.from_square]
+            piece_type = board.piece_at(move.from_square).piece_type
+            to_square_value = square_values[piece_type].detach().numpy()[0][move.to_square]
+            return from_square_value * to_square_value
+
+        # Return the best move, based on its value
+        return max(board.legal_moves, key=value)
 
     def save_model(self, file_name="deep_learning_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
