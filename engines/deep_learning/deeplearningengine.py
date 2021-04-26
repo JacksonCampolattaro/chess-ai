@@ -99,12 +99,13 @@ class DeepLearningEngine(Engine):
         self.output_encoding_size = 64
 
         self.batch_size = 250
-        self.num_epochs = 1
+        self.num_epochs = 150
 
         self.loss_printout_frequency = 10
 
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.0005
         self.weight_decay = 0.0005
+        self.momentum = 0.9
         # self.loss_function = torch.nn.CrossEntropyLoss()
         self.loss_function = torch.nn.NLLLoss()
 
@@ -118,7 +119,10 @@ class DeepLearningEngine(Engine):
                 torch.nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
                 torch.nn.Flatten(),
-                torch.nn.Linear(512, 64),
+
+                torch.nn.Linear(512, 128),
+                torch.nn.ReLU(),
+                torch.nn.Linear(128, 64),
                 torch.nn.LogSoftmax(dim=1),
             )
             for _ in [0] + list(chess.PIECE_TYPES)
@@ -139,12 +143,13 @@ class DeepLearningEngine(Engine):
         net.apply(init_weights)
 
         # This optimizer will do gradient descent for us
-        # optimizer = optim.RMSprop(net.parameters(),
+        optimizer = optim.RMSprop(net.parameters(),
+                                  lr=self.learning_rate,
+                                  weight_decay=self.weight_decay,
+                                  momentum=self.momentum)
+        # optimizer = optim.Adagrad(net.parameters(),
         #                           lr=self.learning_rate,
         #                           weight_decay=self.weight_decay)
-        optimizer = optim.Adagrad(net.parameters(),
-                                  lr=self.learning_rate,
-                                  weight_decay=self.weight_decay)
 
         for epoch in range(self.num_epochs):
             # Training is done in batches
@@ -175,14 +180,14 @@ class DeepLearningEngine(Engine):
                 # Print out the loss every few batches
                 running_loss += loss.item() / len(batch)
                 if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
-                    print(running_loss)
+                    print(running_loss / self.loss_printout_frequency)
                     running_loss = 0
 
     def train(self, pgn_file):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 1_000_000, chess.WHITE)
+        dataset = interpret_data(pgn_file, 10_000, chess.BLACK)
         print(f"Loaded {len(dataset)} moves")
 
         # Train the piece chooser
