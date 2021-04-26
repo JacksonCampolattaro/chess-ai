@@ -160,7 +160,7 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 10000, chess.WHITE)
+        dataset = interpret_data(pgn_file, 1000000, chess.WHITE)
         print(len(dataset))
 
         # Train the piece chooser
