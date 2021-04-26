@@ -106,36 +106,23 @@ class DeepLearningEngine(Engine):
 
         hidden_layer_size = 128
 
-        # The piece chooser network selects the location of the piece to pick up from the board
-        self.piece_chooser = torch.nn.Sequential(
-            torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
-            torch.nn.Flatten(),
-            torch.nn.ReLU(),
-            torch.nn.Linear(2048, hidden_layer_size),
-            torch.nn.Linear(hidden_layer_size, 64),
-            torch.nn.LogSoftmax(dim=0),
-        )
-
-        # The piece placer networks select the location to put down the piece
-        # (A different network is chosen depending on the piece's type)
-        self.piece_placers = {
-            # Each piece type is mapped to its own neural network
-            piece:
-                torch.nn.Sequential(
-                    torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
-                    torch.nn.Flatten(),
-                    torch.nn.ReLU(),
-                    torch.nn.Linear(2048, hidden_layer_size),
-                    torch.nn.Linear(hidden_layer_size, 64),
-                    torch.nn.LogSoftmax(dim=0),
-                )
-            for piece in [0] + list(chess.PIECE_TYPES)
-        }
+        # Square pickers are networks that choose a square on the board, based on its current state
+        self.square_pickers = [
+            torch.nn.Sequential(
+                torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
+                torch.nn.Flatten(),
+                torch.nn.ReLU(),
+                torch.nn.Linear(2048, hidden_layer_size),
+                torch.nn.Linear(hidden_layer_size, 64),
+                torch.nn.LogSoftmax(dim=0),
+            )
+            for _ in [0] + list(chess.PIECE_TYPES)
+        ]
 
     def train_nets(self, training_data, piece):
 
         # Train the relevant net
-        net = self.piece_placers[piece]
+        net = self.square_pickers[piece]
 
         # This optimizer will do gradient descent for us
         optimizer = optim.RMSprop(net.parameters(), lr=self.learning_rate,
@@ -166,9 +153,7 @@ class DeepLearningEngine(Engine):
             loss.backward()
             optimizer.step()
 
-            # print(x, y, pred_y)
-            # print(pred_y.detach().numpy())
-
+            # Print out the loss every hundredth batch
             running_loss += loss.item() / len(batch)
             if i % 100 == 99:
                 print(running_loss)
@@ -178,7 +163,7 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 1000000, chess.WHITE)
+        dataset = interpret_data(pgn_file, 10000, chess.WHITE)
         print(len(dataset))
 
         # Train the piece chooser
@@ -193,15 +178,29 @@ class DeepLearningEngine(Engine):
 
         print("done")
 
-        # TODO build & train the model
-
     def choose_move(self, board: chess.Board):
         return None
 
     def save_model(self, file_name="deep_learning_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
-        torch.save(self.piece_chooser, os.path.join(directory, file_name))
+
+        # Save the piece chooser
+        torch.save(self.square_pickers[0], os.path.join(directory, file_name + ".bin"))
+
+        # Save each piece placer
+        for piece in chess.PIECE_TYPES:
+            torch.save(self.square_pickers[piece],
+                       os.path.join(directory, file_name + f"_{chess.piece_name(piece)}.bin")
+                       )
 
     def load_model(self, file_name="deep_learning_model"):
         directory = os.path.dirname(os.path.realpath(__file__))
-        self.piece_chooser = torch.load(os.path.join(directory, file_name))
+
+        # Save the piece chooser
+        self.square_pickers[0] = torch.load(os.path.join(directory, file_name + ".bin"))
+
+        # Save each piece placer
+        for piece in chess.PIECE_TYPES:
+            self.square_pickers[piece] = torch.load(
+                os.path.join(directory, file_name + f"_{chess.piece_name(piece)}.bin")
+            )
