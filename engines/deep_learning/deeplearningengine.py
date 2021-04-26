@@ -99,11 +99,10 @@ class DeepLearningEngine(Engine):
 
         self.batch_size = 100
 
-        self.learning_rate = 0.00015
+        self.learning_rate = 0.0015
         self.weight_decay = 0.999
-        self.loss_function = torch.nn.CrossEntropyLoss()
-        # self.loss_function = torch.nn.NLLLoss()
-        # self.loss_function = torch.nn.L1Loss()
+        # self.loss_function = torch.nn.CrossEntropyLoss()
+        self.loss_function = torch.nn.NLLLoss()
 
         hidden_layer_size = 128
 
@@ -123,16 +122,23 @@ class DeepLearningEngine(Engine):
             # Each piece type is mapped to its own neural network
             piece:
                 torch.nn.Sequential(
-                    torch.nn.Linear(self.input_encoding_size, hidden_layer_size),
+                    torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
+                    torch.nn.Flatten(),
                     torch.nn.ReLU(),
-                    torch.nn.Linear(hidden_layer_size, self.output_encoding_size),
+                    torch.nn.Linear(2048, hidden_layer_size),
+                    torch.nn.Linear(hidden_layer_size, 64),
+                    torch.nn.LogSoftmax(dim=0),
                 )
-            for piece in chess.PIECE_TYPES
+            for piece in [0] + list(chess.PIECE_TYPES)
         }
 
-    def train_piece_chooser(self, training_data):
+    def train_nets(self, training_data, piece):
+
+        # Train the relevant net
+        net = self.piece_placers[piece]
+
         # This optimizer will do gradient descent for us
-        optimizer = optim.RMSprop(self.piece_chooser.parameters(), lr=self.learning_rate,
+        optimizer = optim.RMSprop(net.parameters(), lr=self.learning_rate,
                                   weight_decay=self.weight_decay)
 
         # Training is done in batches
@@ -141,7 +147,7 @@ class DeepLearningEngine(Engine):
 
             # Extract features and relevant labels from the training dataset
             features = [features for features, labels in batch]
-            labels = [labels[0] for features, labels in batch]
+            labels = [labels[piece] for features, labels in batch]
 
             # Convert features and labels to tensors
             x = torch.Tensor(features)
@@ -151,7 +157,7 @@ class DeepLearningEngine(Engine):
             optimizer.zero_grad()
 
             # Attempt to use the piece chooser model to select a location (forward propegation)
-            pred_y: torch.Tensor = self.piece_chooser(x)
+            pred_y: torch.Tensor = net(x)
 
             # Apply the loss function, comparing predicted values to actual
             loss = self.loss_function(pred_y, y)
@@ -168,16 +174,23 @@ class DeepLearningEngine(Engine):
                 print(running_loss)
                 running_loss = 0
 
-    def train_piece_placer(self, training_data, piece: chess.PieceType):
-        pass
-
     def train(self, pgn_file):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 100000, chess.WHITE)
+        dataset = interpret_data(pgn_file, 1000000, chess.WHITE)
         print(len(dataset))
-        self.train_piece_chooser(dataset)
+
+        # Train the piece chooser
+        print("Training piece chooser")
+        self.train_nets(dataset, 0)
+
+        # Train each piece placer
+        for piece in chess.PIECE_TYPES:
+            print(f"Training piece placer for {chess.piece_name(piece)}")
+            relevant_dataset = [(features, labels) for features, labels in dataset if labels[piece] is not None]
+            self.train_nets(relevant_dataset, piece)
+
         print("done")
 
         # TODO build & train the model
