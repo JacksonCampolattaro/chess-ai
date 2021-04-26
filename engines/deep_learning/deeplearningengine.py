@@ -95,24 +95,28 @@ class DeepLearningEngine(Engine):
         self.input_encoding_size = 384
         self.output_encoding_size = 64
 
-        self.batch_size = 100
+        self.batch_size = 250
+        self.num_epochs = 1
 
-        self.learning_rate = 0.0015
-        self.weight_decay = 0.999
+        self.loss_printout_frequency = 10
+
+        self.learning_rate = 0.0001
+        self.weight_decay = 0.0005
         # self.loss_function = torch.nn.CrossEntropyLoss()
         self.loss_function = torch.nn.NLLLoss()
-
-        hidden_layer_size = 128
 
         # Square pickers are networks that choose a square on the board, based on its current state
         self.square_pickers = [
             torch.nn.Sequential(
-                torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(6, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(),
+                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(),
+                torch.nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(),
                 torch.nn.Flatten(),
-                # torch.nn.ReLU(),
-                torch.nn.Linear(2048, hidden_layer_size),
-                torch.nn.Linear(hidden_layer_size, 64),
-                torch.nn.LogSoftmax(dim=0),
+                torch.nn.Linear(64, 64),
+                torch.nn.LogSoftmax(dim=1),
             )
             for _ in [0] + list(chess.PIECE_TYPES)
         ]
@@ -125,13 +129,17 @@ class DeepLearningEngine(Engine):
         # Initialize the net's weights
         def init_weights(m):
             if type(m) == torch.nn.Conv2d:
-                torch.nn.init.xavier_normal_(m.weight, 10 ** -5)
+                torch.nn.init.xavier_normal_(m.weight, 10 ** -7)
             if type(m) == torch.nn.Linear:
-                torch.nn.init.xavier_normal_(m.weight, 10 ** -6)
+                torch.nn.init.xavier_normal_(m.weight, 10 ** -7)
+
         net.apply(init_weights)
 
         # This optimizer will do gradient descent for us
-        optimizer = optim.RMSprop(net.parameters(),
+        # optimizer = optim.RMSprop(net.parameters(),
+        #                           lr=self.learning_rate,
+        #                           weight_decay=self.weight_decay)
+        optimizer = optim.Adagrad(net.parameters(),
                                   lr=self.learning_rate,
                                   weight_decay=self.weight_decay)
 
@@ -162,7 +170,7 @@ class DeepLearningEngine(Engine):
 
             # Print out the loss every few batches
             running_loss += loss.item() / len(batch)
-            if i % 10 == 9:
+            if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
                 print(running_loss)
                 running_loss = 0
 
@@ -170,18 +178,20 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 10000, chess.WHITE)
-        print(len(dataset))
+        dataset = interpret_data(pgn_file, 1_000_000, chess.WHITE)
+        print(f"Loaded {len(dataset)} moves")
 
         # Train the piece chooser
         print("Training piece chooser")
-        self.train_nets(dataset, 0)
+        for epoch in range(self.num_epochs):
+            self.train_nets(dataset, 0)
 
         # Train each piece placer
         for piece in chess.PIECE_TYPES:
             print(f"Training piece placer for {chess.piece_name(piece)}")
             relevant_dataset = [(features, labels) for features, labels in dataset if labels[piece] is not None]
-            self.train_nets(relevant_dataset, piece)
+            for epoch in range(self.num_epochs):
+                self.train_nets(relevant_dataset, piece)
 
         print("done")
 
@@ -198,6 +208,7 @@ class DeepLearningEngine(Engine):
             from_square_value = square_values[0].detach().numpy()[0][move.from_square]
             piece_type = board.piece_at(move.from_square).piece_type
             to_square_value = square_values[piece_type].detach().numpy()[0][move.to_square]
+            print(move.uci(), from_square_value * to_square_value)
             return from_square_value * to_square_value
 
         # Return the best move, based on its value
