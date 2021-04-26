@@ -10,12 +10,12 @@ import chess
 from engines import extractfeatures
 from engines.engine import Engine
 
-train_limit = 3000
 
 class NaiveBayesEngine(Engine):
 
     def __init__(self):
         self.move_select_model = []
+
         self.pawn_model = []
         self.knight_model = []
         self.bishop_model = []
@@ -23,7 +23,7 @@ class NaiveBayesEngine(Engine):
         self.queen_model = []
         self.king_model = []
 
-    def train(self, pgn_file):
+    def train(self, pgn_file, train_limit=-1):
         # Extract data from pgn file using extractfeatures.py
         move_dict = extractfeatures.interpret_training_data(pgn_file, train_limit)
         # Set up counting vectors
