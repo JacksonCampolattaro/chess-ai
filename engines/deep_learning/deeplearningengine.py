@@ -5,6 +5,7 @@ import chess.pgn
 
 import numpy as np
 import torch
+import torch.nn.init
 import torch.optim as optim
 
 from engines.engine import Engine
@@ -108,7 +109,7 @@ class DeepLearningEngine(Engine):
             torch.nn.Sequential(
                 torch.nn.Conv2d(6, 32, kernel_size=3, stride=1, padding=1),
                 torch.nn.Flatten(),
-                torch.nn.ReLU(),
+                # torch.nn.ReLU(),
                 torch.nn.Linear(2048, hidden_layer_size),
                 torch.nn.Linear(hidden_layer_size, 64),
                 torch.nn.LogSoftmax(dim=0),
@@ -121,8 +122,17 @@ class DeepLearningEngine(Engine):
         # Train the relevant net
         net = self.square_pickers[piece]
 
+        # Initialize the net's weights
+        def init_weights(m):
+            if type(m) == torch.nn.Conv2d:
+                torch.nn.init.xavier_normal_(m.weight, 10 ** -5)
+            if type(m) == torch.nn.Linear:
+                torch.nn.init.xavier_normal_(m.weight, 10 ** -6)
+        net.apply(init_weights)
+
         # This optimizer will do gradient descent for us
-        optimizer = optim.RMSprop(net.parameters(), lr=self.learning_rate,
+        optimizer = optim.RMSprop(net.parameters(),
+                                  lr=self.learning_rate,
                                   weight_decay=self.weight_decay)
 
         # Training is done in batches
@@ -150,9 +160,9 @@ class DeepLearningEngine(Engine):
             loss.backward()
             optimizer.step()
 
-            # Print out the loss every hundredth batch
+            # Print out the loss every few batches
             running_loss += loss.item() / len(batch)
-            if i % 100 == 99:
+            if i % 10 == 9:
                 print(running_loss)
                 running_loss = 0
 
@@ -160,7 +170,7 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 1000000, chess.WHITE)
+        dataset = interpret_data(pgn_file, 10000, chess.WHITE)
         print(len(dataset))
 
         # Train the piece chooser
