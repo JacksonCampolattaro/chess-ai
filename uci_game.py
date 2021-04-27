@@ -4,7 +4,7 @@ from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
 from engines.deep_learning.deeplearningengine import DeepLearningEngine
 
 def main():
-    engine = NaiveBayesEngine()  # Change engine here
+    engine = DeepLearningEngine()  # Change engine here
     engine.load_model()
     # if engine.has_model():
     #     engine.load_model()
