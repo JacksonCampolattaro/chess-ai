@@ -99,7 +99,7 @@ class DeepLearningEngine(Engine):
         self.output_encoding_size = 64
 
         self.batch_size = 250
-        self.num_epochs = 150
+        self.num_epochs = 30
 
         self.loss_printout_frequency = 10
 
@@ -172,22 +172,24 @@ class DeepLearningEngine(Engine):
 
                 # Apply the loss function, comparing predicted values to actual
                 loss = self.loss_function(pred_y, y)
+                if i == 0:
+                    print(loss.item() / len(batch))
 
                 # Backpropagate, and then update weights
                 loss.backward()
                 optimizer.step()
 
                 # Print out the loss every few batches
-                running_loss += loss.item() / len(batch)
-                if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
-                    print(running_loss / self.loss_printout_frequency)
-                    running_loss = 0
+                # running_loss += loss.item() / len(batch)
+                # if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
+                #     print(f"{epoch}.{i / len(training_data)}, ", running_loss / self.loss_printout_frequency)
+                #     running_loss = 0
 
     def train(self, pgn_file):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 1_000_000, chess.BLACK)
+        dataset = interpret_data(pgn_file, 100_000, chess.BLACK)
         print(f"Loaded {len(dataset)} moves")
 
         # Train the piece chooser
