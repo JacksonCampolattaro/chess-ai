@@ -187,7 +187,7 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 10_000, chess.BLACK)
+        dataset = interpret_data(pgn_file, 1_000_000, chess.BLACK)
         print(f"Loaded {len(dataset)} moves")
 
         # Train the piece chooser

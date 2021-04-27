@@ -6,7 +6,7 @@ def main():
     dl = engines.deep_learning.deeplearningengine.DeepLearningEngine()
 
     # Train it with our data set
-    dl.train("/home/jackcamp/Documents/chess-ai/lichess_db_standard_rated_2013-01.pgn")
+    dl.train("lichess_db_standard_rated_2013-01.pgn")
 
     # Save the generated model
     dl.save_model()
