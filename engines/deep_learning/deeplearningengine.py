@@ -215,7 +215,7 @@ class DeepLearningEngine(Engine):
             from_square_value = square_values[0].detach().numpy()[0][move.from_square]
             piece_type = board.piece_at(move.from_square).piece_type
             to_square_value = square_values[piece_type].detach().numpy()[0][move.to_square]
-            print(move.uci(), from_square_value * to_square_value)
+            # print(move.uci(), from_square_value * to_square_value)
             return from_square_value * to_square_value
 
         # Return the best move, based on its value
