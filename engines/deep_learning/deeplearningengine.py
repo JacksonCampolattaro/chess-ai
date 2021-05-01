@@ -99,7 +99,7 @@ class DeepLearningEngine(Engine):
         self.output_encoding_size = 64
 
         self.batch_size = 250
-        self.num_epochs = 30
+        self.num_epochs = 50
 
         self.loss_printout_frequency = 10
 
@@ -112,9 +112,9 @@ class DeepLearningEngine(Engine):
         # Square pickers are networks that choose a square on the board, based on its current state
         self.square_pickers = [
             torch.nn.Sequential(
-                torch.nn.Conv2d(6, 2, kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(2, 4, kernel_size=3, stride=1, padding=1),
+                # torch.nn.Conv2d(6, 2, kernel_size=3, stride=1, padding=1),
+                # torch.nn.ReLU(),
+                torch.nn.Conv2d(6, 4, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
                 torch.nn.Conv2d(4, 8, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(),
@@ -189,7 +189,7 @@ class DeepLearningEngine(Engine):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 100_000, chess.BLACK)
+        dataset = interpret_data(pgn_file, 10_000, chess.BLACK)
         print(f"Loaded {len(dataset)} moves")
 
         # Train the piece chooser
