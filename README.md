@@ -1,6 +1,7 @@
 # chess-ai
-A simple chess AI in Python,
-using datasets from [Lichess](https://database.lichess.org/)
+
+A collection of simple chess engines in Python,
+trained using datasets from [Lichess](https://database.lichess.org/)
 
 ## Structure
 
