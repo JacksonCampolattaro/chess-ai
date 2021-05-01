@@ -3,14 +3,10 @@ import chess
 from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
 from engines.deep_learning.deeplearningengine import DeepLearningEngine
 
+
 def main():
     engine = DeepLearningEngine()  # Change engine here
     engine.load_model()
-    # if engine.has_model():
-    #     engine.load_model()
-    # else:
-    #     engine.train("lichess_db_standard_rated_2013-01.pgn")
-    #     engine.save_model()
 
     # Start game
     b = chess.Board()
@@ -20,7 +16,7 @@ def main():
         player_move = chess.Move.from_uci(uci_in)
         if player_move in b.legal_moves:
             b.push(player_move)
-            if(b.is_game_over()):
+            if (b.is_game_over()):
                 print("You win!")
                 break
             engine_move = engine.choose_move(b)

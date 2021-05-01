@@ -2,7 +2,7 @@
 A simple chess AI in Python,
 using datasets from [Lichess](https://database.lichess.org/)
 
-## Usage
+## Structure
 
 We produced several models during our development process,
 all chess engines are contained in the `engines` directory.
@@ -27,15 +27,18 @@ We also provide `*program.py` for each engine.
 Running this starts an engine which speaks the UCI standard,
 this allows us to use the engines with different interfaces.
 
-### Naive Bayes
+## Usage
 
-#### Training
+To try out one of the engines, we recommend running `uci_game.py`
+with python 3.8. (With a modern IDE, dependencies should be automatically read
+from `requirements.txt` and installed in your `venv`)
 
-#### Running
+`uci_game.py` provides an ascii chess board with which you can play against
+an engine that conforms to our interface. 
+Engines can be swapped by changing the first line of `main()` to load
+a different engine.
 
-### Deep Learning
+Play is done by sending commands in the UCI format,
+for example, "e2e3" moves the pawn at column E forward by 1 square.
 
-#### Training
-
-#### Running
 
