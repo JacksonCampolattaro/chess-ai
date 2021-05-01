@@ -8,9 +8,12 @@ We produced several models during our development process,
 all chess engines are contained in the `engines` directory.
 
 The relevant engines for this project include `naive_bayes` and `deep_learning`.
+Other engines include `old_naive_bayes` which chooses the most common move without looking
+at the current state of the board,
+and `random_engine` which chooses randomly from the pool of legal moves.
 
-Each engine provides a class (e.g. `NaiveBayesEngine`) which implements the `Engine` interface.
-The classes provide the following functionality:
+Each engine provides a class (e.g. `NaiveBayesEngine`) which implements the `Engine` interface 
+defined in `engine.py`. The classes provide the following functionality:
 * `engine.train(filepath)` Load a dataset of games,
   and use the data to train the model.
 * `engine.choose_move(board)` Returns the model's choice of move, 
@@ -26,6 +29,8 @@ invokes the engine's train method and saves the new model.
 We also provide `*program.py` for each engine.
 Running this starts an engine which speaks the UCI standard,
 this allows us to use the engines with different interfaces.
+`uci.py` is the adapter which enables the use of different `Engine` objects
+with the UCI standard.
 
 ## Usage
 
