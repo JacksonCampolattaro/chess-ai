@@ -1,20 +1,30 @@
 import naivebayesengine
+from engines import extractfeatures
+import os
+
 
 def main():
-    train()
-    test()
+    # Configured to do a test_train split
+    if not os.path.exists("train.pgn") or not os.path.exists("test.pgn"):
+        extractfeatures.test_train_split("lichess_db_standard_rated_2013-01.pgn")
+    train("train.pgn")
+    test("train.pgn")
+    test("test.pgn")
 
-def train():
+
+def train(pgn_file="lichess_db_standard_rated_2013-01.pgn"):
     nb = naivebayesengine.NaiveBayesEngine()
-    nb.train("lichess_db_standard_rated_2013-01.pgn")
+    nb.train(pgn_file)
     nb.save_model()
 
-def test():
+
+def test(pgn_file="lichess_db_standard_rated_2013-01.pgn"):
     nb = naivebayesengine.NaiveBayesEngine()
     nb.load_model()
-    scores = nb.test("lichess_db_standard_rated_2013-01.pgn")
+    scores = nb.test(pgn_file)
+    print(pgn_file + " scores:")
     print(scores)
 
 
 if __name__ == '__main__':
-    test()
+    main()

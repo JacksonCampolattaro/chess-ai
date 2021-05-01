@@ -221,8 +221,8 @@ class NaiveBayesEngine(Engine):
                 total_count[predicted_piece] += (predicted_move.from_square == actual_move.from_square)
                 correct_count[predicted_piece] += ((predicted_move.from_square == actual_move.from_square) &
                                                    (predicted_move.to_square == actual_move.to_square))
-                scores = correct_count / total_count
-                print(scores)
+                with np.errstate(invalid='ignore', divide='ignore'):
+                    scores = correct_count / total_count
                 board.push(actual_move)
 
             game_num += 1

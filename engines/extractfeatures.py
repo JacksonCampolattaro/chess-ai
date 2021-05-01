@@ -1,6 +1,7 @@
 import chess
 import chess.pgn
 import numpy as np
+import random as rn
 
 
 def extract_features(board):
@@ -20,12 +21,14 @@ def extract_features_sparse(board):
 
 
 def create_bitboard(indices: list):
+    # Not used
     board = np.empty(shape=64, dtype=bool)
     board[indices] = True
     return board
 
 
 def create_floatboard(indices: list):
+    # Not used
     board = np.zeros(shape=64, dtype=np.float16)
     board[indices] = 1.0
     return board
@@ -84,6 +87,28 @@ def interpret_training_data(pgn_file, end_early=-1):
     return move_dictionary
 
 
+def test_train_split(pgn_file, num_games, percentage_test):
+    # Stochastic split of pgn_file into two separate pgn_files
+    num_train = int(num_games*(1-percentage_test))
+    num_test = int(num_games*percentage_test)
+    rng = rn.Random()
+    pgn_source = open(pgn_file)
+    pgn_train = open("naive_bayes/train.pgn", "w")
+    pgn_test = open("naive_bayes/test.pgn", "w")
+    while num_train > 0 and num_test > 0:
+        train_amt = min(rng.randint(0, 50), num_train)
+        test_amt = min(rng.randint(0, int(50*percentage_test)), num_test)
+        for i in range(train_amt):
+            game = chess.pgn.read_game(pgn_source)
+            print(game, file=pgn_train, end="\n\n")
+        for i in range(test_amt):
+            game = chess.pgn.read_game(pgn_source)
+            print(game, file=pgn_test, end="\n\n")
+
+        num_train -= train_amt
+        num_test -= test_amt
+
+
 if __name__ == '__main__':
     pgn_file = "../lichess_db_standard_rated_2013-01.pgn"
-    interpret_training_data(pgn_file, 100)
+    test_train_split(pgn_file, 120000, 0.2)
