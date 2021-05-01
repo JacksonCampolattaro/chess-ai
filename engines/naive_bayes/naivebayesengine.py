@@ -23,6 +23,9 @@ class NaiveBayesEngine(Engine):
         self.queen_model = []
         self.king_model = []
 
+        self.last_move = None
+        self.backtrack_penalty = 0.1
+
     def train(self, pgn_file, train_limit=-1):
         """
         Counts the occurrence of each moves and the conditional occurrence of each feature to generate the Naive Bayes
@@ -117,11 +120,12 @@ class NaiveBayesEngine(Engine):
         scores = self.get_scores(feature_set, self.move_select_model)
         mask = np.zeros(scores.shape)
         mask[possible_from_squares] = 1
-        scores = scores*mask  # Set all illegal from squares to 0
+        scores = scores * mask  # Set all illegal from squares to 0
         best_from_square = np.argmax(scores)
         # Create possible ending (to) squares based on selection
         possible_moves = [move for move in possible_moves if move.from_square == best_from_square]
-        possible_to_squares = np.unique([move.to_square for move in possible_moves if move.from_square == best_from_square])
+        possible_to_squares = np.unique(
+            [move.to_square for move in possible_moves if move.from_square == best_from_square])
         # Select movement model based on piece type
         move_piece = board.piece_at(best_from_square).piece_type
         piece_model = self.select_model(move_piece)
@@ -129,10 +133,14 @@ class NaiveBayesEngine(Engine):
         scores = self.get_scores(feature_set, piece_model)
         mask = np.zeros(scores.shape)
         mask[possible_to_squares] = 1
-        scores = scores*mask  # Set all illegal to squares to 0
+        scores = scores * mask  # Set all illegal to squares to 0
+        # Penalize backtracking
+        if self.last_move is not None and best_from_square == self.last_move.to_square:
+            scores[self.last_move.from_square] *= self.backtrack_penalty
         best_to_square = np.argmax(scores)
         # Create move based on findings
         move = chess.Move(from_square=best_from_square, to_square=best_to_square)
+        self.last_move = move
         return move
 
     def select_model(self, piece_type):
@@ -193,3 +201,32 @@ class NaiveBayesEngine(Engine):
         self.rook_model = models[chess.ROOK]
         self.queen_model = models[chess.QUEEN]
         self.king_model = models[chess.KING]
+
+    def test(self, pgn_file, test_limit=-1):
+        correct_count = np.zeros(7)
+        total_count = np.zeros(7)
+        pgn = open(pgn_file)
+        game = chess.pgn.read_game(pgn)
+        game_num = 1
+        while game is not None and (game_num <= test_limit or test_limit < 0):
+
+            # Get starting board
+            board = game.board()
+            # Start playing through the game
+            for actual_move in game.mainline_moves():
+                total_count[0] += 1
+                predicted_move = self.choose_move(board)
+                predicted_piece = board.piece_at(predicted_move.from_square).piece_type
+                correct_count[0] += (predicted_move.from_square == actual_move.from_square)
+                total_count[predicted_piece] += (predicted_move.from_square == actual_move.from_square)
+                correct_count[predicted_piece] += ((predicted_move.from_square == actual_move.from_square) &
+                                                   (predicted_move.to_square == actual_move.to_square))
+                scores = correct_count / total_count
+                print(scores)
+                board.push(actual_move)
+
+            game_num += 1
+            game = chess.pgn.read_game(pgn)
+
+        scores = correct_count / total_count
+        return scores

@@ -1,5 +1,7 @@
 import chess.engine
 import chess.pgn
+import engines.naive_bayes.naivebayesengine
+import engines.deep_learning.deeplearningengine
 
 
 def play(engine1, engine2):
@@ -22,6 +24,39 @@ def play(engine1, engine2):
 
     return board
 
+def simple_play(print_board = False):
+    engine_white = engines.naive_bayes.naivebayesengine.NaiveBayesEngine()
+    engine_black = engines.deep_learning.deeplearningengine.DeepLearningEngine()
+    engine_white.load_model()
+    engine_black.load_model()
+
+    turn = chess.WHITE
+    board = chess.Board()
+    if print_board:
+        print(board)
+        print()
+
+    moves = []
+    while not board.is_game_over(claim_draw=True):
+        if turn == chess.WHITE:
+            move = engine_white.choose_move(board)
+        else:
+            move = engine_black.choose_move(board)
+
+        moves.append(move)
+        board.push(move)
+
+        if print_board:
+            print(("White"*turn)+("Black"*(not turn)), move.uci())
+            print(board)
+            print()
+
+        turn = not turn
+
+    return moves
+
+
+
 
 def grade(engine):
     enemy = chess.engine.SimpleEngine.popen_uci("./engines/deep_learning/deeplearningprogram.py")
@@ -35,7 +70,8 @@ def grade(engine):
 
 
 if __name__ == "__main__":
-    our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/naivebayesprogram.py")
+    #our_engine = chess.engine.SimpleEngine.popen_uci("./engines/naive_bayes/naivebayesprogram.py")
     # our_engine = chess.engine.SimpleEngine.popen_uci("/usr/bin/stockfish")
-    print(grade(our_engine))
-
+    #print(grade(our_engine))
+    moves = simple_play(True)
+    print(moves)
