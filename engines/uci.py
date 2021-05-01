@@ -1,3 +1,8 @@
+"""
+uci.py || Engine-UCI Interface Script
+
+Establishes an interface for our engine implementations so we can test them against one-another/Stockfish.
+"""
 import logging
 
 import chess

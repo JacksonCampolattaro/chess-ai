@@ -5,6 +5,8 @@ import random as rn
 
 
 def extract_features(board):
+    # Not used.
+    """Takes a chess board and converts it into a 384 element, one-hot-like [-1, 1] feature set. Used in CNN."""
     encodings = []
     for piece_type in chess.PIECE_TYPES:
         encodings.append(np.array(board.pieces(piece_type, chess.WHITE).tolist(), np.int8)
@@ -13,6 +15,8 @@ def extract_features(board):
 
 
 def extract_features_sparse(board):
+    """Takes a chess board and converts it into a 768 element, one-hot [0, 1] encoded feature set.
+    Used in Naive Bayes."""
     encodings = []
     for piece_type in chess.PIECE_TYPES:
         for piece_color in chess.COLORS:
@@ -36,6 +40,9 @@ def create_floatboard(indices: list):
 
 def interpret_training_data(pgn_file, end_early=-1):
     """
+    Iterates through the given .pgn file and returns a move dictionary containing feature and label tuples. Used in
+    Naive Bayes approach.
+
     :param pgn_file:    File name of PGN file to extract data from.
     :param end_early:   Integer to determine after how many games feature extraction should end. If set to -1, function
                         will extract all game data from pgn file.
@@ -88,13 +95,24 @@ def interpret_training_data(pgn_file, end_early=-1):
 
 
 def test_train_split(pgn_file, num_games, percentage_test):
+    """
+    Creates a stochastic split of the given .pgn file and saves the resultant train-test split into train.pgn and
+    test.pgn. Used in Naive Bayes approach.
+
+    :param pgn_file: File name of PGN file to extract data and split from.
+    :param num_games: How many total games should be considered.
+    :param percentage_test: Defines what percentage of total games should be held out as test data.
+    """
     # Stochastic split of pgn_file into two separate pgn_files
     num_train = int(num_games*(1-percentage_test))
     num_test = int(num_games*percentage_test)
+
     rng = rn.Random()
+
     pgn_source = open(pgn_file)
-    pgn_train = open("naive_bayes/train.pgn", "w")
-    pgn_test = open("naive_bayes/test.pgn", "w")
+    pgn_train = open("train.pgn", "w")
+    pgn_test = open("test.pgn", "w")
+    # Read games in source and randomly append into train and test files
     while num_train > 0 and num_test > 0:
         train_amt = min(rng.randint(0, 50), num_train)
         test_amt = min(rng.randint(0, int(50*percentage_test)), num_test)
@@ -108,7 +126,3 @@ def test_train_split(pgn_file, num_games, percentage_test):
         num_train -= train_amt
         num_test -= test_amt
 
-
-if __name__ == '__main__':
-    pgn_file = "../lichess_db_standard_rated_2013-01.pgn"
-    test_train_split(pgn_file, 120000, 0.2)

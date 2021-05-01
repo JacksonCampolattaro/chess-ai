@@ -1,3 +1,9 @@
+"""
+deeplearningengine.py || Convolutional Neural Network Engine
+
+Contains the core behavior of our CNN model. Inherits implementation from base Engine class.
+"""
+
 import os
 from itertools import zip_longest
 

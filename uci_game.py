@@ -1,3 +1,8 @@
+"""
+uci_game.py || Player vs. Engine Script
+
+Customizable script that allows a user to play against an engine. Used for qualitative evaluation of models.
+"""
 import chess
 
 from engines.naive_bayes.naivebayesengine import NaiveBayesEngine
@@ -6,7 +11,7 @@ from engines.deep_learning.deeplearningengine import DeepLearningEngine
 
 def main():
     engine = DeepLearningEngine()  # Change engine here
-    engine.load_model()
+    engine.load_model()  # MUST HAVE A PRETRAINED MODEL READY TO GO
 
     # Start game
     b = chess.Board()

@@ -1,3 +1,9 @@
+"""
+main.py || Play-by-Play Script
+
+Customizable script that hosts the UCI connection and facilitates games between engines. Displays the move each engine
+takes. Not used for any practical testing, but still cool nonetheless.
+"""
 import chess.pgn
 import chess.engine
 

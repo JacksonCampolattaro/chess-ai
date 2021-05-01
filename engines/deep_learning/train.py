@@ -1,3 +1,8 @@
+"""
+train.py || Convolutional Neural Network Train Script
+
+Simple script to demonstrate the CNN engine. Currently configured to just train a CNN and save its sub-models.
+"""
 import engines.deep_learning.deeplearningengine
 
 

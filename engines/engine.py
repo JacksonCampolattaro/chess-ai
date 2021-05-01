@@ -1,4 +1,8 @@
+"""
+engine.py || Abstract Engine Interface
 
+Establishes the basic interface of all engines within the project.
+"""
 class Engine:
 
     def train(self, data):

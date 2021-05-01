@@ -1,13 +1,14 @@
 """
-This approach was developed in response to the old Naive-Bayes implementation's lackluster performance and it's lack of
-'awareness.' So, we adapted
+naivebayesengine.py || Naive-Bayes Engine
+
+Contains the core behavior of our Naive-Bayes model. Inherits implementation from base Engine class.
 """
 
 import os.path
 
 import numpy as np
 import chess
-from engines import extractfeatures
+import extractfeatures
 from engines.engine import Engine
 
 
@@ -93,9 +94,9 @@ class NaiveBayesEngine(Engine):
         Calculates the 64-element probability density matrix (i.e. the "scores" of each chess square) given a certain
         model matrix and feature_set using Naive Bayes.
 
-        :param feature_set:
-        :param model:
-        :return:
+        :param feature_set: 768 binary feature set representing board state.
+        :param model: 64x769 probability matrix used for probability density calculation.
+        :return: 64 element vector representing the 'scores' of each square on a chess board.
         """
         where_inv = np.argwhere(feature_set == 0) + 1
         updated_model = model.copy()
@@ -203,6 +204,14 @@ class NaiveBayesEngine(Engine):
         self.king_model = models[chess.KING]
 
     def test(self, pgn_file, test_limit=-1):
+        """
+        Iterates through each game in the given .pgn file and scores the model's prediction against the true labels.
+
+        :param pgn_file: String of the .pgn file that the model will test against.
+        :param test_limit: Optional limit to the number of games within the .pgn file that should be tested. -1 signifies
+                           that all games w/i the file should be tested. Default: -1
+        :return: Seven element vector for each sub-model in the order they're constructed.
+        """
         correct_count = np.zeros(7)
         total_count = np.zeros(7)
         pgn = open(pgn_file)

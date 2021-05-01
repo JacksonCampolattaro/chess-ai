@@ -1,3 +1,9 @@
+"""
+grader.py || Competitive Grader Script
+
+Customizable script that hosts the UCI connection and facilitates games between engines. Gets a holistic overview of
+models' performance against one-another. Used for Engine v. Stockfish evaluation.
+"""
 import chess.engine
 import chess.pgn
 import engines.naive_bayes.naivebayesengine

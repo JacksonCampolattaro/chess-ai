@@ -1,4 +1,8 @@
+"""
+randomengine.py || Random Engine
 
+Simple engine that chooses a legal, random move. Used as a control in Stockfish evaluation.
+"""
 import random
 from engines.engine import Engine
 
