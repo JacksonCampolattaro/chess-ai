@@ -3,6 +3,11 @@
 A collection of simple chess engines in Python,
 trained using datasets from [Lichess](https://database.lichess.org/)
 
+# Team Members
+Jackson Campolattaro || PID: jackcamp  
+Muskaan Narula       || PID: muskaannarula22  
+Michael Fuhrer       || PID: mfuhrer
+
 ## Structure
 
 We produced several models during our development process,
