@@ -8,6 +8,8 @@ import torch
 import torch.nn.init
 import torch.optim as optim
 
+from sklearn.model_selection import train_test_split
+
 from engines.engine import Engine
 
 
@@ -15,7 +17,6 @@ def onehot_board(square: chess.Square):
     board_encoding = np.zeros(shape=64, dtype=np.int8)
     board_encoding[square] = 1.0
     return board_encoding
-    # return np.reshape(board_encoding, (8, 8))
 
 
 def as_bitboard(board: chess.Board, piece: chess.PieceType, color: chess.Color):
@@ -99,7 +100,7 @@ class DeepLearningEngine(Engine):
         self.output_encoding_size = 64
 
         self.batch_size = 250
-        self.num_epochs = 50
+        self.num_epochs = 15
 
         self.loss_printout_frequency = 10
 
@@ -128,7 +129,7 @@ class DeepLearningEngine(Engine):
             for _ in [0] + list(chess.PIECE_TYPES)
         ]
 
-    def train_nets(self, training_data, piece):
+    def train_nets(self, training_data, test_data, piece):
 
         # Train the relevant net
         net = self.square_pickers[piece]
@@ -139,7 +140,6 @@ class DeepLearningEngine(Engine):
                 torch.nn.init.xavier_normal_(m.weight, 10 ** -7)
             if type(m) == torch.nn.Linear:
                 torch.nn.init.xavier_normal_(m.weight, 10 ** -7)
-
         net.apply(init_weights)
 
         # This optimizer will do gradient descent for us
@@ -147,13 +147,11 @@ class DeepLearningEngine(Engine):
                                   lr=self.learning_rate,
                                   weight_decay=self.weight_decay,
                                   momentum=self.momentum)
-        # optimizer = optim.Adagrad(net.parameters(),
-        #                           lr=self.learning_rate,
-        #                           weight_decay=self.weight_decay)
 
         for epoch in range(self.num_epochs):
+
             # Training is done in batches
-            running_loss = 0.0
+            total_loss = 0
             for i, batch in enumerate(chunks(training_data, self.batch_size)):
 
                 # Extract features and relevant labels from the training dataset
@@ -172,35 +170,54 @@ class DeepLearningEngine(Engine):
 
                 # Apply the loss function, comparing predicted values to actual
                 loss = self.loss_function(pred_y, y)
-                if i == 0:
-                    print(loss.item() / len(batch))
+                total_loss += loss.item()
 
                 # Backpropagate, and then update weights
                 loss.backward()
                 optimizer.step()
 
-                # Print out the loss every few batches
-                # running_loss += loss.item() / len(batch)
-                # if i % self.loss_printout_frequency == (self.loss_printout_frequency - 1):
-                #     print(f"{epoch}.{i / len(training_data)}, ", running_loss / self.loss_printout_frequency)
-                #     running_loss = 0
+            print(total_loss / len(training_data), end=",")
+
+            # Check performance on the test data
+            total_test_loss = 0
+            for i, batch in enumerate(chunks(test_data, self.batch_size)):
+
+                # Extract features and relevant labels from the training dataset
+                features = [features for features, labels in batch]
+                labels = [labels[piece] for features, labels in batch]
+
+                # Convert features and labels to tensors
+                x = torch.Tensor(features)
+                y = torch.tensor(labels, dtype=torch.long)
+
+                # Attempt to use the piece chooser model to select a location (forward propegation)
+                pred_y: torch.Tensor = net(x)
+
+                # Apply the loss function, comparing predicted values to actual
+                total_test_loss += self.loss_function(pred_y, y).item()
+
+            print(total_test_loss / len(test_data))
 
     def train(self, pgn_file):
         # training_data = interpret_training_data(pgn_file, 5000)
         # self.train_piece_chooser(training_data)
 
-        dataset = interpret_data(pgn_file, 10_000, chess.BLACK)
+        dataset = interpret_data(pgn_file, 100_000, chess.BLACK)
         print(f"Loaded {len(dataset)} moves")
+
+        # Split the dataset into testing and training data
+        training_data, testing_data = train_test_split(dataset, test_size=0.20)
 
         # Train the piece chooser
         print("Training piece chooser")
-        self.train_nets(dataset, 0)
+        self.train_nets(training_data, testing_data, 0)
 
         # Train each piece placer
         for piece in chess.PIECE_TYPES:
             print(f"Training piece placer for {chess.piece_name(piece)}")
-            relevant_dataset = [(features, labels) for features, labels in dataset if labels[piece] is not None]
-            self.train_nets(relevant_dataset, piece)
+            relevant_training_data = [(features, labels) for features, labels in training_data if labels[piece] is not None]
+            relevant_testing_data = [(features, labels) for features, labels in testing_data if labels[piece] is not None]
+            self.train_nets(relevant_training_data, relevant_testing_data, piece)
 
         print("done")
 
