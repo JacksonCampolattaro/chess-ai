@@ -16,13 +16,13 @@ def main():
         player_move = chess.Move.from_uci(uci_in)
         if player_move in b.legal_moves:
             b.push(player_move)
-            if (b.is_game_over()):
+            if b.is_game_over():
                 print("You win!")
                 break
             engine_move = engine.choose_move(b)
             print("Engine>", engine_move.uci())
             b.push(engine_move)
-            if (b.is_game_over()):
+            if b.is_game_over():
                 print("You lose!")
                 break
         else:
